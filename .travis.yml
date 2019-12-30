@@ -32,7 +32,7 @@ after_success: # 执行script成功后，进入到public，把里面的代码提
 
 branches:
   only:
-  - dev # CI 只针对分支 dev
+  - master # CI 只针对分支 dev
 
 env:
   global: # 全局变量，上面的提交到github的命令有用到
