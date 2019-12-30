@@ -8,6 +8,9 @@ addons: # Travis CI建议加的，自动更新api
 cache:
   directories: 
   - node_modules # 缓存 node_modules
+  
+before_install:
+- npm install hexo-cli -g
 
 install:
 - npm install # 初次安装，在CI环境中，执行安装npm依赖
