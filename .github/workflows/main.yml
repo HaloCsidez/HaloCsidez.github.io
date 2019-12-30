@@ -37,5 +37,5 @@ jobs:
 
     - name: Deploy
       run: |
-        #publish
+        # publish
         hexo generate && hexo deploy # 执行部署程序
