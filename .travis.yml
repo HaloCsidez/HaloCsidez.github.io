@@ -15,6 +15,7 @@ install:
 # before_script: 
 
 script:
+- hexo clean
 - hexo g # 执行 hexo generate，把文章编译到public中
 
 after_success: # 执行script成功后，进入到public，把里面的代码提交到博客的gh-pages分支
@@ -23,12 +24,12 @@ after_success: # 执行script成功后，进入到public，把里面的代码提
 - git config user.name "halocsidez"
 - git config user.email "csidez@163.com"
 - git add .
-- git commit -m "Update site"
+- git commit -m "Travis CI Auto Builder"
 - git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:gh-pages
 
 branches:
   only:
-  - master # CI 只针对分支 dev
+  - dev # CI 只针对分支 dev
 
 env:
   global: # 全局变量，上面的提交到github的命令有用到
