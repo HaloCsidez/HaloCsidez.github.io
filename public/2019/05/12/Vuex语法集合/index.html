@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+
+
+
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content>
+    <meta name="author" content="csidez">
+    <meta name="keywords" content>
+    <title>Vuex语法集合 ~ HaloCsidez</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/mdb.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_1067060_vr10bjtg3us.css">
+    
+        <link rel="stylesheet" href="/css/Prettify/github.min.css">
+    
+</head>
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+<div class="container">
+    <a class="navbar-brand" href="/"><strong>HaloCsidez</strong></a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto text-center">
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/archives/">Archives</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/about/">About</a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+
+</nav>
+    <div class="view intro-2" style='background: url("/post.jpg")no-repeat center center;background-size: cover;'>
+    <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+        <div class="container text-center white-text wow fadeInUp">
+            <p class="h2">Vuex语法集合</p>
+            <br>
+            
+            <p>Sunday, May 12th 2019, 1:18 am</p>
+            
+        </div>
+        </div>
+    </div>
+    </div>
+  </header>
+
+  <main>
+  
+  <div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 ">
+            <div class="post-content py-5 z-depth-3 main">
+                <h1 id="使用Vuex"><a href="#使用Vuex" class="headerlink" title="使用Vuex"></a>使用Vuex</h1><p>记录了关于vuex的一些简单使用（解决平常毕设以及工作中遇到的问题——刷新单页面导致其中链接到某些的数据的地址丢失）</p>
+<h2 id="State"><a href="#State" class="headerlink" title="State"></a>State</h2><p>用来存储属性，一些公共的数据（<code>一个页面改变该数据，别的页面引用的该数据也会发生改变</code>）</p>
+<pre><code>state:{ 
+    products: [
+    {name: &apos;鼠标&apos;, price: 120},
+    {name: &apos;键盘&apos;, price: 40},
+    {name: &apos;耳机&apos;, price: 60},
+    {name: &apos;显示屏&apos;, price: 80}
+    ],
+    user: {},
+    token: null,
+},
+</code></pre><p>使用：</p>
+<ol>
+<li>在页面中引入</li>
+</ol>
+<pre><code>import testStore from &apos;../store/testStore&apos;
+</code></pre><ol start="2">
+<li><p>在data的相应属性上调用</p>
+<pre><code>data () {
+    return {
+        products: testStore.state.products
+    }
+},
+</code></pre></li>
+</ol>
+<ol start="3">
+<li><p>页面上使用</p>
+<pre><code>{{ product.name }}
+</code></pre></li>
+</ol>
+<h2 id="Getters"><a href="#Getters" class="headerlink" title="Getters"></a>Getters</h2><p>类似Java的get方法，能够通过某种公式或者直接返回值</p>
+<pre><code>getters:{
+    saleProducts: (state) =&gt; {
+        let saleProducts = state.products.map(
+            products =&gt; {
+                return{
+                    name: products.name,
+                    price: products.price / 2
+                }
+            }
+        )
+        return saleProducts;
+    }
+},
+</code></pre><p>使用：</p>
+<ol>
+<li><p>在页面中引入</p>
+</li>
+<li><p>在data的相应属性上调用</p>
+<pre><code>data () {
+        return {
+            products: testStore.getters.saleProducts
+        }
+    },
+</code></pre></li>
+</ol>
+<ol start="3">
+<li>页面上使用</li>
+</ol>
+<h2 id="Mutations"><a href="#Mutations" class="headerlink" title="Mutations"></a>Mutations</h2><p>类似method方法，保存着更改数据的回调函数<code>第一个参数是state(应该是定死的), 第二参数是payload, 也就是自定义的参数.</code></p>
+<pre><code>mutations: {
+    minusPrice (state,payload) {
+        let newPrice = state.products.forEach(
+            products =&gt;{
+                products.price -= payload
+            }
+        )
+    }
+}
+</code></pre><p>使用：</p>
+<ol>
+<li>通过commit调用在store中名为<code>minusPrice</code>的方法，<code>2</code>为自定义参数</li>
+</ol>
+<pre><code>testStore.commit(&apos;minusPrice&apos;,2);
+</code></pre><ol start="2">
+<li>可以将它写成一个函数来调用</li>
+</ol>
+<pre><code>&lt;button @click=&quot;minusPrice&quot;&gt;减价2美元&lt;/button&gt;
+
+methods: {
+    minusPrice(){
+        testStore.commit(&apos;minusPrice&apos;,2);
+    }
+}
+</code></pre><h2 id="Actions"><a href="#Actions" class="headerlink" title="Actions"></a>Actions</h2><p>Actions 类似于 mutations，不同在于：</p>
+<ul>
+<li>actions提交的是mutations而不是直接变更状态</li>
+<li>actions中可以包含异步操作, mutations中绝对不允许出现异步</li>
+<li>actions中的回调函数的第一个参数是context, 是一个与store实例具有相同属性和方法的对象</li>
+<li>此时,我们在store中添加actions属性, 其中minusPriceAsync采用setTimeout来模拟异步操作,延迟2s执行 该方法用于异步改变我们刚才在mutaions中定义的minusPrice</li>
+</ul>
+<p><code>个人见解：action是一个调用mutations里面的方法的一个方法</code></p>
+<pre><code>actions:{
+    minusPriceAsync(context, payload){
+        setTimeout(
+            ()=&gt;{
+                context.commit(&apos;minusPrice&apos;,payload);
+            },2000
+        )
+    }
+}
+</code></pre><p>使用：</p>
+<ol>
+<li>通过dispatch调用在store中名为<code>minusPrice</code>的方法</li>
+</ol>
+<pre><code>testStore.dispatch(&apos;minusPriceAsync&apos;,5);
+</code></pre><ol start="2">
+<li><p>可以将它写成一个函数来调用</p>
+<pre><code>&lt;button @click=&quot;minusPriceAsync&quot;&gt;减价5美元&lt;/button&gt;
+</code></pre></li>
+</ol>
+<pre><code>methods: {
+    minusPriceAsync(){
+        testStore.dispatch(&apos;minusPriceAsync&apos;,5);
+    }
+}
+</code></pre>
+                <hr>
+                <div>
+                    <p>
+                         
+                        <span class="badge badge-light">#&nbsp;Vue</span>
+                        &nbsp;
+                         
+                        <span class="badge badge-light">#&nbsp;前端</span>
+                        &nbsp;
+                        
+                    </p>
+                </div>
+                <br>
+                
+                    <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                
+            </div>
+        </div>
+        <div class="d-none d-md-block col-md-2">
+            
+  <div id="toc" class="py-5">
+    <p class="h6"><i class="iconfont icon-toc" style="vertical-align:middle"></i> Toc:</p> 
+    <div id="tocbot"></div>
+  </div>
+
+        </div>
+    </div>        
+</div>
+
+<br><br><br>
+
+<!-- Comments -->
+<div class="comments" id="comments">
+
+    
+    <div class="disqus" style="width:100%">
+    <div id="disqus_thread"></div>
+    <script>               
+        var disqus_shortname = 'csidez';
+        var disqus_config = function () {
+            this.page.url = 'http://yoursite.com/2019/05/12/Vuex语法集合/'; 
+            this.page.identifier = '/2019/05/12/Vuex语法集合/';
+        };
+        (function() { 
+            var d = document, s = d.createElement('script');
+            s.type = 'text/javascript';
+            s.src = '//'+disqus_shortname+'.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>                                
+</div>
+ 
+</div>
+  
+  </main>
+
+<footer class="mt-5">
+  <div class="text-center py-3">
+  <!--
+    <a href="https://hexo.io" target="_blank"><b>HEXO</b></a>
+    <i class="iconfont icon-love"></i>
+    <a href="https://github.com/0x2e/Material-T" target="_blank"> <b>Material-T</b></a>
+    -->
+  </div>
+</footer>
+
+  <!-- SCRIPTS -->
+  <script src="/js/search.js"></script> 
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/mdb.min.js"></script>
+  <script src="/js/main.js"></script>
+  
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.4.2/tocbot.min.js"></script>
+    
+    <script src="/js/post.js"></script>
+    
+      <script src="/js/plugins/prettify.js"></script>
+      <script>
+          $(document).ready(function(){
+              $('pre').addClass('prettyprint linenums');
+              prettyPrint();
+          })
+      </script>
+    
+  
+
+  
+    <script type="text/javascript">      
+      var search_path = "search.xml";
+      if (search_path.length == 0) {
+        search_path = "search.xml";
+      }
+      var path = "/" + search_path;
+      searchFunc(path, 'local-search-input', 'local-search-result');
+    </script>
+  
+</body>
+</html>

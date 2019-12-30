@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+
+
+
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content>
+    <meta name="author" content="csidez">
+    <meta name="keywords" content>
+    <title>存储过程 ~ HaloCsidez</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/mdb.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_1067060_vr10bjtg3us.css">
+    
+        <link rel="stylesheet" href="/css/Prettify/github.min.css">
+    
+</head>
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+<div class="container">
+    <a class="navbar-brand" href="/"><strong>HaloCsidez</strong></a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto text-center">
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/archives/">Archives</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/about/">About</a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+
+</nav>
+    <div class="view intro-2" style='background: url("/post.jpg")no-repeat center center;background-size: cover;'>
+    <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+        <div class="container text-center white-text wow fadeInUp">
+            <p class="h2">存储过程</p>
+            <br>
+            
+            <p>Monday, August 5th 2019, 10:58 am</p>
+            
+        </div>
+        </div>
+    </div>
+    </div>
+  </header>
+
+  <main>
+  
+  <div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 ">
+            <div class="post-content py-5 z-depth-3 main">
+                <h1 id="存储过程与存储函数"><a href="#存储过程与存储函数" class="headerlink" title="存储过程与存储函数"></a>存储过程与存储函数</h1><h2 id="解释"><a href="#解释" class="headerlink" title="解释"></a>解释</h2><p>储存程序 (Stored Procedure)，又可称预储程序或者存储过程，是一种在数据库中存储复杂程序，以便外部程序调用的一种数据库对象，它可以视为数据库中的一种函数或子程序。</p>
+<p><code>存储在数据库中，供所有用户程序调用的子程序</code></p>
+<ul>
+<li><p>优点</p>
+<ol>
+<li>重复使用。存储过程可以重复使用，从而可以减少数据库开发人员的工作量。</li>
+<li>减少网络流量。存储过程位于服务器上，调用的时候只需要传递存储过程的名称以及参数就可以了，因此降低了网络传输的数据量。</li>
+<li>安全性。参数化的存储过程可以防止SQL注入式攻击，而且可以将Grant、Deny以及Revoke权限应用于存储过程。</li>
+<li>效率高。由于数据库执行动作时，是先编译后执行的。然而存储过程是一个编译过的代码块，所以执行效率要比T-SQL语句高。</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li>调试麻烦。</li>
+<li>移植性差。不同数据库支持的语言不一样，其存储过程的编写规则也不一样，所以存储过程无法移植到另一类数据库。</li>
+<li>重新编译问题。因为后端代码是运行前编译的，如果带有引用关系的对象发生改变时，受影响的存储过程、包将需要重新编译（不过也可以设置成运行时刻自动编译）。</li>
+<li>不能大量使用。如果在一个程序系统中大量的使用存储过程，到程序交付使用的时候随着用户需求的增加会导致数据结构的变化，接着就是系统的相关问题了，最后如果用户想维护该系统可以说是非常难、而且代价是空前的，维护起来更麻烦。</li>
+</ol>
+</li>
+</ul>
+<h2 id="存储过程语法"><a href="#存储过程语法" class="headerlink" title="存储过程语法"></a>存储过程语法</h2><h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><pre><code>create [or replace] procedure  &lt;过程名&gt;(&lt;参数列表,无参时忽略&gt;)
+as/is
+变量声明、初始化
+begin
+业务处理、逻辑代码
+exception
+异常捕获、容错处理
+end  &lt;过程名&gt;;
+
+参数:
+&lt;参数名&gt; in|out|in out  &lt;参数类型，无长度说明&gt; ，如：v_name  varchar2
+in：入参
+out：出参
+in out：出入参
+
+调用语法：
+    1)、exec  &lt;过程名&gt;;
+    2)、execute  &lt;过程名&gt;;
+    3)、在PL/SQL语句块中直接调用。
+
+异常捕获：
+    when others then/raise;
+</code></pre><h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><pre><code>create or replace procedure &quot;TEST_SWAP&quot;(v_param1 in out varchar2,v_param2 in out varchar2)
+is
+    v_temp varchar2(20);
+begin
+    dbms_output.put_line(&apos;交换前参数1：&apos;||v_param1||&apos;  参数2：&apos;||v_param2);
+    v_temp:=v_param1;
+    v_param1:=v_param2;
+    v_param2:=v_temp;
+    dbms_output.put_line(&apos;交换后参数1：&apos;||v_param1||&apos;  参数2：&apos;||v_param2);
+exception
+    when others then dbms_output.put_line(&apos;There is a error when the procedure up_wap executing!&apos;);
+end &quot;TEST_SWAP&quot;;
+</code></pre><h3 id="常用语法"><a href="#常用语法" class="headerlink" title="常用语法"></a>常用语法</h3><pre><code>-- INSERT
+SELECT INTO table1 (name1, name2...) SELECT (name1, name2..) FROM table2 WHERE exprss
+
+-- 转换为两位小数
+SELECT to_char(&apos;1111&apos;,&apos;FM990.00&apos;) FROM hau_dm_b6c_import;
+
+-- NVL(E1, E2)的功能为：如果E1为NULL，则函数返回E2，否则返回E1本身。
+SELECT NVL(&apos;1233&apos;, &apos;123&apos;) FROM HAU_DM_B6C_IMPORT;
+</code></pre><h2 id="存储函数语法"><a href="#存储函数语法" class="headerlink" title="存储函数语法"></a>存储函数语法</h2><pre><code>-- 语法
+create [or replace] function 函数名(参数列表)
+return 函数值类型
+as
+PLSQL子程序体;
+</code></pre><h2 id="使用原则"><a href="#使用原则" class="headerlink" title="使用原则"></a>使用原则</h2><p>如果只有一个返回值,用存储函数;否则,就用存储过程.</p>
+<h1 id="HiAgent-报表"><a href="#HiAgent-报表" class="headerlink" title="HiAgent 报表"></a>HiAgent 报表</h1><h2 id="配置数据源管理"><a href="#配置数据源管理" class="headerlink" title="配置数据源管理"></a>配置数据源管理</h2><p>视作一个在页面上定义一个存储过程</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;数据源管理</p>
+</li>
+<li><p>添加数据源：</p>
+<ul>
+<li>存储过程名称：数据库中对应的名称</li>
+<li>数据源名称：</li>
+<li>数据源描述：</li>
+</ul>
+</li>
+<li><p>配置输入和输出参数</p>
+</li>
+</ol>
+<h2 id="配置模版管理"><a href="#配置模版管理" class="headerlink" title="配置模版管理"></a>配置模版管理</h2><p>定义其展现模式</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;模版管理</p>
+</li>
+<li><p>添加模版：（前端使用echart控件）</p>
+<ul>
+<li>模版名称：</li>
+<li>模版描述：</li>
+<li>模版类：</li>
+<li>存储过程：上一级定义的过程</li>
+<li>模版类型：<ul>
+<li>图表：需要配置模版样式</li>
+<li>网格：要求展现的字段为num</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="配置报表管理"><a href="#配置报表管理" class="headerlink" title="配置报表管理"></a>配置报表管理</h2><p>定义其具体的输入内容和暂时内容</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;报表管理</p>
+</li>
+<li><p>添加报表：</p>
+<ul>
+<li>报表标题：</li>
+<li>模版子标题：</li>
+<li>报表类：同上一级配置的模版类型（无法更改）</li>
+<li>报表模版：</li>
+</ul>
+</li>
+</ol>
+<h2 id="配置权限管理"><a href="#配置权限管理" class="headerlink" title="配置权限管理"></a>配置权限管理</h2><p>定义什么角色可以查看</p>
+<p>BUG：全选按钮会导致无法查看报表，需要逐个勾选</p>
+
+                <hr>
+                <div>
+                    <p>
+                         
+                        <span class="badge badge-light">#&nbsp;ORACLE</span>
+                        &nbsp;
+                         
+                        <span class="badge badge-light">#&nbsp;存储过程</span>
+                        &nbsp;
+                        
+                    </p>
+                </div>
+                <br>
+                
+                    <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                
+            </div>
+        </div>
+        <div class="d-none d-md-block col-md-2">
+            
+  <div id="toc" class="py-5">
+    <p class="h6"><i class="iconfont icon-toc" style="vertical-align:middle"></i> Toc:</p> 
+    <div id="tocbot"></div>
+  </div>
+
+        </div>
+    </div>        
+</div>
+
+<br><br><br>
+
+<!-- Comments -->
+<div class="comments" id="comments">
+
+    
+    <div class="disqus" style="width:100%">
+    <div id="disqus_thread"></div>
+    <script>               
+        var disqus_shortname = 'csidez';
+        var disqus_config = function () {
+            this.page.url = 'http://yoursite.com/2019/08/05/存储过程/'; 
+            this.page.identifier = '/2019/08/05/存储过程/';
+        };
+        (function() { 
+            var d = document, s = d.createElement('script');
+            s.type = 'text/javascript';
+            s.src = '//'+disqus_shortname+'.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>                                
+</div>
+ 
+</div>
+  
+  </main>
+
+<footer class="mt-5">
+  <div class="text-center py-3">
+  <!--
+    <a href="https://hexo.io" target="_blank"><b>HEXO</b></a>
+    <i class="iconfont icon-love"></i>
+    <a href="https://github.com/0x2e/Material-T" target="_blank"> <b>Material-T</b></a>
+    -->
+  </div>
+</footer>
+
+  <!-- SCRIPTS -->
+  <script src="/js/search.js"></script> 
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/mdb.min.js"></script>
+  <script src="/js/main.js"></script>
+  
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.4.2/tocbot.min.js"></script>
+    
+    <script src="/js/post.js"></script>
+    
+      <script src="/js/plugins/prettify.js"></script>
+      <script>
+          $(document).ready(function(){
+              $('pre').addClass('prettyprint linenums');
+              prettyPrint();
+          })
+      </script>
+    
+  
+
+  
+    <script type="text/javascript">      
+      var search_path = "search.xml";
+      if (search_path.length == 0) {
+        search_path = "search.xml";
+      }
+      var path = "/" + search_path;
+      searchFunc(path, 'local-search-input', 'local-search-result');
+    </script>
+  
+</body>
+</html>

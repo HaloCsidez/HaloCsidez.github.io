@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+
+
+
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content>
+    <meta name="author" content="csidez">
+    <meta name="keywords" content>
+    <title>云服务器加快Tomcat启动速度 ~ HaloCsidez</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/css/mdb.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://at.alicdn.com/t/font_1067060_vr10bjtg3us.css">
+    
+        <link rel="stylesheet" href="/css/Prettify/github.min.css">
+    
+</head>
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+<div class="container">
+    <a class="navbar-brand" href="/"><strong>HaloCsidez</strong></a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto text-center">
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/archives/">Archives</a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="/about/">About</a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+
+</nav>
+    <div class="view intro-2" style='background: url("/post.jpg")no-repeat center center;background-size: cover;'>
+    <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+        <div class="container text-center white-text wow fadeInUp">
+            <p class="h2">云服务器加快Tomcat启动速度</p>
+            <br>
+            
+            <p>Tuesday, May 28th 2019, 4:31 pm</p>
+            
+        </div>
+        </div>
+    </div>
+    </div>
+  </header>
+
+  <main>
+  
+  <div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 ">
+            <div class="post-content py-5 z-depth-3 main">
+                <p>解决阿里云服务器上的Tomcat启动巨慢的问题<br><a id="more"></a></p>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><ul>
+<li>阿里云学生套餐</li>
+<li>Tomcat8.0</li>
+<li>CentOS7</li>
+</ul>
+<h3 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h3><ul>
+<li>启动过程会停留在：<br><code>Deplopying web application directory...</code><br>需要等待很久才能完成</li>
+</ul>
+<h3 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h3><ul>
+<li>借助strace工具（跟踪系统调用），利用代码<code>strace -f -o strace.out ./catalina.sh run</code></li>
+<li>分析过程请参照 <a href="https://www.jianshu.com/p/576d356dc163" target="_blank" rel="noopener">原文</a></li>
+</ul>
+<h3 id="主要原因"><a href="#主要原因" class="headerlink" title="主要原因"></a>主要原因</h3><ul>
+<li>Tocmat在启动过程中的Session ID是通过SHA1算法计算得到的，计算Session ID的时候必须有一个密钥。</li>
+<li>为了提高安全性Tomcat在启动的时候回通过随机生成一个密钥。</li>
+<li>而随机数的生成是通过/dev/random（Linux下的随机函数生成器）来实现的。</li>
+<li>然而，/dev/random会根据噪音产生随机数，如果噪音不够它就会阻塞。Linux是通过I/O，键盘终端、内存使用量、CPU利用率等方式来收集噪音的，如果噪音不够生成随机数的时候就会被阻塞。（源自wiki百科）</li>
+</ul>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><ul>
+<li><p><code>用伪随机函数生成器(/dev/urandom)来替代随机函数生成器(/dev/random)</code>，可以有一下两种办法：</p>
+<ol>
+<li>通过修改JRE中的java.security（/usr/java/jdk1.8.0_121/jre/lib/security/java.security）文件securerandom.source=file:/dev/urandom</li>
+<li>java程序启动参数中添加：-Djava.security.egd=file:/dev/urandom，使用/dev/urandom生成随机数。</li>
+</ol>
+</li>
+<li><p><code>增大/dev/random的熵池</code></p>
+<ul>
+<li>通过cat /proc/sys/kernel/random/entropy_avail我们可以查看现在的熵池大小</li>
+<li>通过at /proc/cpuinfo | grep rdrand查看CPU是否支持DRNG特性</li>
+<li><ol>
+<li><p>支持DRNG特性：</p>
+<pre><code>yum install rngd-tools（yum install rng-tools）
+/*安装rngd服务（熵服务）*/
+systemctl start rngd
+</code></pre></li>
+</ol>
+</li>
+<li><ol start="2">
+<li><p>不支持DRNG特性或者使用虚拟机，可以使用/dev/unrandom来模拟：</p>
+<pre><code>cp /usr/lib/systemd/system/rngd.service /etc/systemd/system
+编辑/etc/systemd/system/rngd.service
+修改ExecStart参数为/sbin/rngd -f -r /dev/urandom
+systemctl daemon-reload
+重新载入服务
+systemctl restart rngd
+重启服务
+</code></pre></li>
+</ol>
+</li>
+<li><p>再次查看熵池大小，可以利用watch -n 1 cat /proc/sys/kernel/random/entropy_avail测试随机数生成速度</p>
+</li>
+</ul>
+</li>
+</ul>
+
+                <hr>
+                <div>
+                    <p>
+                         
+                        <span class="badge badge-light">#&nbsp;运维</span>
+                        &nbsp;
+                         
+                        <span class="badge badge-light">#&nbsp;Tomcat</span>
+                        &nbsp;
+                         
+                        <span class="badge badge-light">#&nbsp;云服务器</span>
+                        &nbsp;
+                        
+                    </p>
+                </div>
+                <br>
+                
+                    <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+                
+            </div>
+        </div>
+        <div class="d-none d-md-block col-md-2">
+            
+  <div id="toc" class="py-5">
+    <p class="h6"><i class="iconfont icon-toc" style="vertical-align:middle"></i> Toc:</p> 
+    <div id="tocbot"></div>
+  </div>
+
+        </div>
+    </div>        
+</div>
+
+<br><br><br>
+
+<!-- Comments -->
+<div class="comments" id="comments">
+
+    
+    <div class="disqus" style="width:100%">
+    <div id="disqus_thread"></div>
+    <script>               
+        var disqus_shortname = 'csidez';
+        var disqus_config = function () {
+            this.page.url = 'http://yoursite.com/2019/05/28/云服务器Tomcat启动加速/'; 
+            this.page.identifier = '/2019/05/28/云服务器Tomcat启动加速/';
+        };
+        (function() { 
+            var d = document, s = d.createElement('script');
+            s.type = 'text/javascript';
+            s.src = '//'+disqus_shortname+'.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>                                
+</div>
+ 
+</div>
+  
+  </main>
+
+<footer class="mt-5">
+  <div class="text-center py-3">
+  <!--
+    <a href="https://hexo.io" target="_blank"><b>HEXO</b></a>
+    <i class="iconfont icon-love"></i>
+    <a href="https://github.com/0x2e/Material-T" target="_blank"> <b>Material-T</b></a>
+    -->
+  </div>
+</footer>
+
+  <!-- SCRIPTS -->
+  <script src="/js/search.js"></script> 
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.7.4/js/mdb.min.js"></script>
+  <script src="/js/main.js"></script>
+  
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.4.2/tocbot.min.js"></script>
+    
+    <script src="/js/post.js"></script>
+    
+      <script src="/js/plugins/prettify.js"></script>
+      <script>
+          $(document).ready(function(){
+              $('pre').addClass('prettyprint linenums');
+              prettyPrint();
+          })
+      </script>
+    
+  
+
+  
+    <script type="text/javascript">      
+      var search_path = "search.xml";
+      if (search_path.length == 0) {
+        search_path = "search.xml";
+      }
+      var path = "/" + search_path;
+      searchFunc(path, 'local-search-input', 'local-search-result');
+    </script>
+  
+</body>
+</html>

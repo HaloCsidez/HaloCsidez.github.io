@@ -1,0 +1,264 @@
+---
+title: Redis底层数据笔记
+date: 2019-07-02 10:54:47
+tags:
+- Redis
+---
+
+# redis底层数据结构以及对象系统
+
+## 底层数据结构
+## SDS（simple dynamic string，简单动态字符串）
+
+    /* 保存字符串对象的结构 */
+    struct sdshdr {
+        int len;       // buf 中已占用空间的长度
+        int free;      // buf 中剩余可用空间的长度
+        char buf[];    // 数据空间
+    };
+
+### SDS空间预分配：
+对SDS字符串进行扩展，如果free值大于扩展值则直接存储，否则重新分配空间：
+- 如果对SDS进行修改后字符串长度（len值）小于1MB，则额外分配len大小相同的空间（free值）；
+- 若SDS修改后len大于1MB，则额外分配1MB的空间（free值）。
+
+### SDS惰性空间释放：
+对SDS字符串进行缩短操作，并不会重新分配内存回收缩短的字节，而是使用free属性将这些字节的数量记录起来。
+
+redis保存的是SDS中的buf的二进制数据。SDS的API都是二进制安全的。
+
+
+![](http://ww3.sinaimg.cn/large/006tNc79ly1g4l9uj0wp9j30k305x0v2.jpg)
+### 链表
+双向链表
+
+    /* 双端链表节点 */
+    typedef struct listNode {
+        struct listNode *prev;      // 前置节点
+        struct listNode *next;      // 后置节点  
+        void *value;                // 节点的值
+    } listNode;
+
+![](http://ww3.sinaimg.cn/large/006tNc79ly1g4l9wbhheaj30j309042e.jpg)
+### 字典
+
+    /* 哈希表节点 */
+    typedef struct dictEntry {    
+        void *key;                // 键
+        union {                   // 值
+            void *val;
+            uint64_t u64;
+            int64_t s64;
+        } v;
+        struct dictEntry *next;   // 指向下个哈希表节点，形成链表
+
+    } dictEntry;
+
+    /*  字典类型特定函数 */
+    typedef struct dictType {
+        unsigned int (*hashFunction)(const void *key); 
+        // 计算哈希值的函数
+        void *(*keyDup)(void *privdata, const void *key);  
+        // 复制键的函数
+        void *(*valDup)(void *privdata, const void *obj);               
+        // 复制值的函数
+        int (*keyCompare)(void *privdata, const void *key1, const void *key2);   
+        // 对比键的函数
+        void (*keyDestructor)(void *privdata, void *key);   
+        // 销毁键的函数
+        void (*valDestructor)(void *privdata, void *obj);       
+        // 销毁值的函数
+    } dictType;
+
+
+    /* This is our hash table structure. Every dictionary has two of this as we
+    * implement incremental rehashing, for the old to the new table. */
+    /* 哈希表
+    * 每个字典都使用两个哈希表，从而实现渐进式 rehash 。
+    */
+    typedef struct dictht {
+        dictEntry **table;      // 哈希表数组，用链表方式解决冲突问题
+        unsigned long size;     // 哈希表大小
+        unsigned long sizemask; // 哈希表大小掩码，用于计算索引值，总是等于 size - 1
+        unsigned long used;     // 该哈希表已有节点的数量
+    } dictht;
+
+    /* 字典 */
+    typedef struct dict {
+        dictType *type;      // 类型特定函数
+        void *privdata;      // 私有数据
+        dictht ht[2];        // 哈希表
+        int rehashidx;       // rehash 索引，当 rehash 不在进行时，值为 -1
+        int iterators;       // 目前正在运行的安全迭代器的数量
+    } dict;
+
+
+![](http://ww2.sinaimg.cn/large/006tNc79ly1g4l9xmgd3oj312e0mejwm.jpg)
+哈希算法：
+    redis使用MurmurHash算法来计算键的哈希值。目前使用的是Murmurhash2。
+
+哈希冲突：
+    使用链地址法解决键冲突，为了速度考虑，总是将新节点添加到链表的表头位置。如下，k2插在k1前面。
+
+![](http://ww2.sinaimg.cn/large/006tNc79ly1g4l9zhs22lj31000u010z.jpg)
+rehash：
+    负载因子：load_factor = ht[0].used / ht[0].size
+
+哈希表的扩展：
+- 服务器没执行BGSAVE或BGREWRITEAOF命令，并且负载因子大于等于1.
+- 服务器正执行BGSAVE或BGREWRITEAOF命令，并且负载因子大于等于5.
+- 哈希表的收缩：当哈希表的负载因子小于0.1时，会自动收缩。
+
+- 步骤：
+    - 为字典的ht[1]分配空间，大小为：
+        - 若是扩展操作，则大小为第一个大于等于ht[0}.used*2的2^n;
+        - 若是收缩操作，则大小为第一个大于等于ht[0].used的2^n.
+    - 将保存在ht[0]中的所有键值rehash到ht[1]中（重新计算哈希值和索引值);
+    - 释放ht[0]中的所有键值对，将ht[1]设为ht[0]，并在ht[1]上创建一个空白的哈希表。
+
+渐进式rehash：
+- 若是键值对数量太大，那么若一次性rehash可能会导致服务器在一段时间内停止服务。因此可以采用分多次渐进式地将ht[0]的键值对慢慢地rehash到ht[1]中。
+
+- 步骤：
+    - 为ht[1]分配空间，让字典同时拥有ht[0]和ht[1]两个哈希表；
+    - 将rehashidx设为0，表示rehash正式开始；
+        - 在rehash期间，每次对字典进行添加、删除、查找或者更新操作时，除了执行指定操作外，还会顺带将ht[0]在rehashidx索引上的所有键值对rehash到ht[1]中，然后将rehashidx加1；
+        - 当ht[0]中所有的键值对全部rehash到ht[1]后，将rehashidx设为-1，rehash完成。
+
+在rehash期间，对字典进行增删查找操作时需要在ht[0]和ht[1]上操作。如查找要现在ht[0]查找，查不到再到ht[1]查找；如增加键值对，一律在ht[1]中增加，这样保证ht[0]中的键值对数量只减少不增加。
+
+### 跳跃表（zset）
+在跳跃表中，节点是按分数从小到大排序的。各个节点保存的成员对象必须是唯一的，但不同节点的分数可以相同，分数相同的节点按照成员对象在字典序中的大小来排序。
+
+    /* ZSETs use a specialized version of Skiplists */
+    /*  跳跃表节点 */
+    typedef struct zskiplistNode {
+        robj *obj;                         // 成员对象
+        double score;                      // 分值
+        struct zskiplistNode *backward;    // 后退指针
+        struct zskiplistLevel {            // 层
+            struct zskiplistNode *forward; // 前进指针
+            unsigned int span;             // 跨度
+        } level[];
+    } zskiplistNode;
+
+    /* 跳跃表 */
+    typedef struct zskiplist {
+        struct zskiplistNode *header, *tail; // 表头节点和表尾节点
+        unsigned long length;                // 表中节点的数量
+        int level;                           // 表中层数最大的节点的层数
+    } zskiplist;
+
+![](http://ww2.sinaimg.cn/large/006tNc79ly1g4la16rsynj31160fyafs.jpg)
+
+    /* 有序集合 */
+    typedef struct zset {
+        dict *dict; 
+        // 字典，键为成员，值为分值， 用于支持 O(1) 复杂度的按成员取分值操作
+        zskiplist *zsl;
+        // 跳跃表，按分值排序成员，用于支持平均复杂度为 O(log N) 的按分值定位成员操作， 以及范围操作
+    } zset;
+
+### 整数集合（intset）
+
+    typedef struct intset {
+        uint32_t encoding;   // 编码方式
+        uint32_t length;     // 集合包含的元素数量
+        int8_t contents[];   // 保存元素的数组，从小到大排序，无重复
+    } intset;
+升级：若要添加一个新元素到整数集合中，并且新元素类型比整数集合元素的类型长，则整数集合需要先升级，才能将新元素放进集合中。
+
+步骤：
+
+- 根据新元素的类型，扩展整数集合底层数组（contents）的空间大小，并为新元素分配空间；
+- 将底层数组现有的所有元素都转换成与新元素相同的类型，并有序地放到正确的位置上；
+- 将新元素添加到底层数组中。
+
+    因为引发升级的新元素的长度总是比整数集合现有的所有元素的长度都大，所以该元素要么就大于所有现有元素，要不就小于现有所有元素，因此新元素要不就放在最开头要不就放在最末尾。
+    
+    不支持降级！
+
+### 压缩列表（ziplist）
+压缩列表是由一系列特殊编码的连续内存块组成的顺序型数据结构。
+
+压缩列表组成：
+
+![](http://ww4.sinaimg.cn/large/006tNc79ly1g4la3fjr3mj31800l8nbi.jpg)
+
+压缩节点构成：
+
+![](http://ww2.sinaimg.cn/large/006tNc79ly1g4la3q4w6zj30oc04q75l.jpg)
+
+previous_entry_length：记录了压缩列表中前一个节点的长度（1或5字节）：
+- 若前一节点长度小于254字节，那么previous_entry_length长度为1字节；
+- 若前一节点长度大于等于254字节，那么previous_entry_length长度为5字节，其中第一字节为0xFE，后四个字节为长度。
+encoding：记录了节点content属性所保存的数据类型以及长度；
+
+![](http://ww1.sinaimg.cn/large/006tNc79ly1g4la4ar43zj31820o07hl.jpg)
+
+content：保存节点的值，可以是一个字节数组或者整数。
+
+### 对象
+redis基于之前介绍的数据结构，创建了一个对象系统，包括字符串对象、列表对象、哈希对象、集合对象以及有序集合对象这五类。
+
+    typedef struct redisObject {  
+        unsigned type:4;              // 类型
+        unsigned encoding:4;          // 编码
+        unsigned lru:REDIS_LRU_BITS;  // 对象最后一次被访问的时间
+        int refcount;                 // 引用计数
+        void *ptr;                    // 指向实际值的指针
+    } robj;
+
+type：对象的类型
+
+![](http://ww3.sinaimg.cn/large/006tNc79ly1g4la53wfmjj30gy0cgwhk.jpg)
+
+redis会根据键对象的type属性进行类型检查，判断该键对象是否能执行指定的命令；如果可以则执行，否则拒绝执行并向客户端返回一个类型错误。
+
+若键能执行指定的指令，还会根据值对象的编码（encoding属性）方式，选择正确的命令实现代码执行命令。
+
+encoding：对象的编码，确定底层数据结构
+
+![](http://ww1.sinaimg.cn/large/006tNc79ly1g4la5mfswxj317m0fs0zt.jpg)
+
+
+每个类型的对象都有多种不同编码：
+
+![](http://ww4.sinaimg.cn/large/006tNc79ly1g4la64fp7dj316q0ks4dm.jpg)
+
+refcount：引用计数，用于内存回收和共享内存。
+
+- 内存回收：一个对象被多个程序使用时，引用计数会增加；程序不再使用时引用计数会减少，当减少到为0时，释放对象所占内存。
+
+- 共享内存：redis服务器初始化时，会创建从0到9999共一万个字符串对象，当需要用到这些对象则共享对象而不是创建对象。
+
+    - 字符串对象
+
+        - 编码：int（整数）、raw（redisObject+SDS）或embstr（redisObject+embstr编码的SDS）
+
+        - 若是整数值，并且该整数值可以用long类型表示，则编码为int；若是字符串值，并且字符串长度大于32字节，那么将使用SDS保存字符串值，编码为raw；若是字符串值，并且字符串长度小于等于32字节，则编码为embstr。
+
+        - 注意：
+            - long double类型的浮点数是用字符串保存的，对其操作会先转化为浮点型进行操作再转化为字符串保存。
+            - 对int型操作（如APPEND一个字符串），会把int转化为raw。
+            embstr字符串为只读，若要对其修改会先转化为raw。
+
+    - 列表对象
+
+        - 编码：ziplist（压缩列表）或linkedlist（双端链表）
+
+        - 当列表对象保存的字符串元素都小于64字节，并且元素数量小于512个时，使用ziplist；否则使用linkedlist，每个节点保存一个字符串对象。
+    - 哈希对象
+
+        - 编码：ziplist（压缩列表）或hashtable（字典）
+
+        - 哈希对象中保存的所有键值对的键和值的字符串长度都小于64字节，并且键值对数量小于512个，使用ziplist；否则使用hashtable，键和值都为字符串对象。
+    - 集合对象
+        - 编码：intset（整数集合）或hashtable（字典）
+
+        - 集合对象保存的所有元素都是整数值，并且数量不超过512个时，使用intset；否则使用hashtable，若使用hashtable，每个键都为一个字符串对象，值为NULL。
+    - 有序集合对象
+        - 编码：ziplist（压缩列表）或skiplist（zset）
+
+        - 有序结合保存的元素数量小于128个，并且元素成员长度小于64字节，使用ziplist，每个结合元素使用两个压缩列表节点保存，第一个保存成员，第二个保存分数，集合元素按分值从小到大排序；
+        - 否则使用skiplist编码，底层为zset结构，包含一个字典和一个跳跃表，其中跳跃表按分值进行排序，实现了范围查询；而字典创建了从成员到分数的映射，键为集合元素，值为分数；字典和跳跃表都使用指针指向成员和分数，因此不会
