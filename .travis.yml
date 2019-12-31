@@ -28,7 +28,7 @@ after_success: # 执行script成功后，进入到public，把里面的代码提
 - git config user.email "csidez@163.com"
 - git add .
 - git commit -m "Travis CI Auto Builder"
-- git push --force --quiet "https://${Travis_Token}@${GH_REF}" gh-source:master
+- git push --force --quiet "https://${Travis_Token}@${GH_REF}" master:master
 
 branches:
   only:
