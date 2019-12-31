@@ -28,11 +28,11 @@ after_success: # 执行script成功后，进入到public，把里面的代码提
 - git config user.email "csidez@163.com"
 - git add .
 - git commit -m "Travis CI Auto Builder"
-- git push --force --quiet "https://${Travis_Token}@${GH_REF}" master:gh-pages
+- git push --force --quiet "https://${Travis_Token}@${GH_REF}" gh-source:master
 
 branches:
   only:
-  - master # CI 只针对分支 dev
+  - gh-source # CI 只针对分支 dev
 
 env:
   global: # 全局变量，上面的提交到github的命令有用到
