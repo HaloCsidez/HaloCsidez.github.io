@@ -83,7 +83,7 @@ theme: material
 # Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repository: https://github.com/HaloCsidez/halocsidez.github.io.git
+  repository: git@github.com:HaloCsidez/halocsidez.github.io.git
   # repository: git@120.79.210.182:/home/gitRepo/hexoBlog.git
   # repository: https://git.dev.tencent.com/csidez/csidez.coding.me.git
-  branch: gh_pages
+  branch: master
