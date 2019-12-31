@@ -20,6 +20,7 @@ install:
 script:
 - hexo clean
 - hexo g # 执行 hexo generate，把文章编译到public中
+- hexo g # 避免主页空白
 
 after_success: # 执行script成功后，进入到public，把里面的代码提交到博客的gh-pages分支
 - cd ./public
