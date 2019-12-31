@@ -17,7 +17,7 @@ apple_touch_icon: /apple-touch-icon.png
 # Index Page
 #---------------------------
 index: 
-  banner_img: /index.jpg
+  banner_img: https://csidezyum.oss-cn-hangzhou.aliyuncs.com/owncloud/index.jpg?Expires=1577780860&OSSAccessKeyId=TMP.hjKfK72cJN4XjkW3vp2EC6gdNQJK64XcRhTuYDawXdzfpW6jKtCdHymyoSVN4UN6MjZkZ4Phz22puhtw18i5fCivjzChhu3SerHw3YKtWhcp4qA4d1rJMPhFuU8NUP.tmp&Signature=%2FGNiWKMVE%2Bisqq7AE7COuXKQaS8%3D
   banner_img_height: 80  # available: 0 - 100
   subtitle:
     enable: true
