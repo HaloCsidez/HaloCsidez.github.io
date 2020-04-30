@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content>
+  <meta name="author" content="csidez">
+  <meta name="keywords" content>
+  <title>Spring单元测试编写 - HaloCsidez</title>
+
+  <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css">
+
+
+  <link rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css">
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_fmb4a04yx8h.css">
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_ijqayz9ro8k.css">
+
+
+
+<link rel="stylesheet" href="/css/main.css">
+
+<!-- 自定义样式保持在最底部 -->
+
+
+</head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Fluid</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="iconfont icon-home-fill"></i>
+              首页</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/archives/">
+              <i class="iconfont icon-archive-fill"></i>
+              归档</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/categories/">
+              <i class="iconfont icon-category-fill"></i>
+              分类</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/tags/">
+              <i class="iconfont icon-tags-fill"></i>
+              标签</a>
+          </li>
+        
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/about/">
+              <i class="iconfont icon-user-fill"></i>
+              关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <div class="mt-3 post-meta">
+                  <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+                  <time datetime="2020-01-22 14:09">
+                    2020年1月22日 下午
+                  </time>
+                </div>
+              
+
+              <div class="mt-1">
+                
+                  
+                  <span class="post-meta mr-2">
+                    <i class="iconfont icon-chart"></i>
+                    979 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta mr-2">
+                      <i class="iconfont icon-clock-fill"></i>
+                    
+                    
+                    14
+                     分钟
+                  </span>
+                
+
+                
+              </div>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <article class="markdown-body">
+              <h1 id="SpringBoot单元测试"><a href="#SpringBoot单元测试" class="headerlink" title="SpringBoot单元测试"></a>SpringBoot单元测试</h1><h2 id="Controller层"><a href="#Controller层" class="headerlink" title="Controller层"></a>Controller层</h2><h3 id="登录校验-一般情况不使用"><a href="#登录校验-一般情况不使用" class="headerlink" title="登录校验(一般情况不使用)"></a>登录校验(一般情况不使用)</h3><pre><code class="hljs java"><span class="hljs-meta">@RunWith</span>(SpringRunner<span class="hljs-class">.<span class="hljs-keyword">class</span>)
+@<span class="hljs-title">Transactional</span>//测试结束后<span class="hljs-title">rollback</span>
+@<span class="hljs-title">SpringBootTest</span>
+<span class="hljs-title">public</span> <span class="hljs-title">abstract</span> <span class="hljs-title">class</span> <span class="hljs-title">BaseTest</span> </span>&#123;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> LoginBean LOGINBEAN;
+    <span class="hljs-keyword">static</span> &#123;
+        LoginBean.Builder builder = <span class="hljs-keyword">new</span> LoginBean.Builder();
+        builder.setAccountID(<span class="hljs-string">"7f2b815be57541549b7c4cd1e81f2923"</span>);
+        builder.setCompanyID(<span class="hljs-string">"08d181119a7b4c0e94ff368942fd4420"</span>);
+        builder.setLoginName(<span class="hljs-string">"utry"</span>);
+        builder.setRealName(<span class="hljs-string">"远传"</span>);
+        LOGINBEAN = builder.build();
+        LoginInfo.putSp(LOGINBEAN);
+    &#125;
+
+    <span class="hljs-meta">@Autowired</span>
+    <span class="hljs-keyword">protected</span> ICacheService cache;
+    
+    &#123;
+        init();
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">init</span><span class="hljs-params">()</span> </span>&#123;
+        preloadModules();
+        splitMapper();
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">preloadModules</span><span class="hljs-params">()</span> </span>&#123;
+        UtryCloudModuleManager.initModules();
+    &#125;
+
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">splitMapper</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">new</span> MybatisMapperSplitListener(<span class="hljs-string">"mapper"</span>).onApplicationEvent(<span class="hljs-keyword">null</span>);
+    &#125;
+
+    <span class="hljs-meta">@Before</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setUp</span><span class="hljs-params">()</span> </span>&#123;
+        LoginInfo.setThreadLocal(cache, LOGINBEAN);
+    &#125;
+&#125;</code></pre>
+<h3 id="注解"><a href="#注解" class="headerlink" title="注解"></a>注解</h3><ul>
+<li><p>测试类注解</p>
+<pre><code class="hljs java"><span class="hljs-meta">@RunWith</span>(SpringRunner<span class="hljs-class">.<span class="hljs-keyword">class</span>)
+@<span class="hljs-title">SpringBootTest</span></span></code></pre>
+</li>
+<li><p>模拟MVC环境注解以及代码</p>
+<pre><code class="hljs java"><span class="hljs-keyword">private</span> MockMVC mockMVC
+<span class="hljs-meta">@Autowired</span>
+<span class="hljs-keyword">private</span> WebApplicationContext webApplicationContext;</code></pre>
+</li>
+<li><p>通过@Before方法，提前准备测试环境</p>
+</li>
+</ul>
+<p><code>注意（此处的MockMvc 实例化是通过手工方式创建，如果想通过spring的bean注入方式的话，在类上加@AutoConfigureMockMvc/@Controller等注解，只要等同于@Component效果即可，然后在上面的第2步中进行注入，即在成员变量mockMvc上加注解@Autowired）</code></p>
+<pre><code class="hljs java"><span class="hljs-meta">@Before</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setup</span><span class="hljs-params">()</span></span>&#123;
+    <span class="hljs-comment">/*通过bean注入方式
+    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    */</span>
+
+    <span class="hljs-comment">/*手动指定需要测试controller类*/</span>
+    mockMvc = MockMvcBuilders.standaloneSetup(<span class="hljs-keyword">new</span> RecordTapDataImportController()).build();
+&#125;</code></pre>
+<h3 id="编写测试方法-Test"><a href="#编写测试方法-Test" class="headerlink" title="编写测试方法@Test"></a>编写测试方法@Test</h3><ul>
+<li>普通的测试方法<pre><code class="hljs java"><span class="hljs-comment">/**
+     * 获取最新app信息
+     */</span>
+	<span class="hljs-meta">@Test</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">TestGetAppLatestVersion</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>&#123;
+		RequestBuilder request = <span class="hljs-keyword">null</span>;
+		<span class="hljs-comment">//构造请求</span>
+		request = post(<span class="hljs-string">"/appProducer/getAppLatestVersion"</span>) 
+				.param(<span class="hljs-string">"appId"</span>, <span class="hljs-string">"1001"</span>); 
+		<span class="hljs-comment">//执行请求</span>
+		mockMvc.perform(request) 
+		        .andExpect(status().isOk())<span class="hljs-comment">//返回HTTP状态为200</span>
+		        .andExpect(jsonPath(<span class="hljs-string">"$.status"</span>, not(<span class="hljs-string">"E"</span>)))<span class="hljs-comment">//使用jsonPath解析JSON返回值，判断具体的内容, 此处不希望status返回E</span>
+		        .andDo(print());<span class="hljs-comment">//打印结果</span>
+		        <span class="hljs-comment">//.andReturn();//想要返回结果，使用此方法</span>
+		
+	&#125;
+	
+	<span class="hljs-comment">/**
+	 * 用户通过微信方式扫描下载APP，则会提示使用浏览器打开地址
+	 */</span>
+	<span class="hljs-meta">@Test</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">TestDownloadAppByMicroMessenger</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>&#123;
+		RequestBuilder request = <span class="hljs-keyword">null</span>;
+		<span class="hljs-comment">//构造请求</span>
+		request = get(<span class="hljs-string">"/appProducer/downloadApp"</span>)
+				.header(<span class="hljs-string">"user-agent"</span>, <span class="hljs-string">"MicroMessenger"</span>)
+				.param(<span class="hljs-string">"appId"</span>, <span class="hljs-string">"1001"</span>); 
+		<span class="hljs-comment">//执行请求</span>
+		mockMvc.perform(request) 
+		        .andExpect(status().isOk())<span class="hljs-comment">//返回HTTP状态为200</span>
+		        .andExpect(content().string(containsString(<span class="hljs-string">"选择浏览器打开即可"</span>)))<span class="hljs-comment">//返回结果中需包含的文字</span>
+		        .andDo(print());<span class="hljs-comment">//打印结果</span>
+		
+	&#125;
+	
+	<span class="hljs-comment">/**
+	 * 用户通过Android扫描下载APP
+	 */</span>
+	<span class="hljs-meta">@Test</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">TestDownloadAppByAndroid</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>&#123;
+		RequestBuilder request = <span class="hljs-keyword">null</span>;
+		<span class="hljs-comment">//构造请求</span>
+		request = get(<span class="hljs-string">"/appProducer/downloadApp"</span>)
+				.header(<span class="hljs-string">"user-agent"</span>, <span class="hljs-string">"Android"</span>)
+				.param(<span class="hljs-string">"appId"</span>, <span class="hljs-string">"1001"</span>); 
+		<span class="hljs-comment">//执行请求</span>
+		mockMvc.perform(request) 
+		        .andExpect(status().isOk())<span class="hljs-comment">//返回HTTP状态为200</span>
+		        .andDo(print());<span class="hljs-comment">//打印结果</span>
+		
+	&#125;
+	
+	<span class="hljs-comment">/**
+	 * 用户通过iPhone扫描下载APP，则会重定向至评苹果APP官网
+	 */</span>
+	<span class="hljs-meta">@Test</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">TestDownloadAppByIphone</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>&#123;
+		RequestBuilder request = <span class="hljs-keyword">null</span>;
+		<span class="hljs-comment">//构造请求</span>
+		request = get(<span class="hljs-string">"/appProducer/downloadApp"</span>)
+				.header(<span class="hljs-string">"user-agent"</span>, <span class="hljs-string">"iPhone"</span>)
+				.param(<span class="hljs-string">"appId"</span>, <span class="hljs-string">"1001"</span>); 
+		<span class="hljs-comment">//执行请求</span>
+		mockMvc.perform(request) 
+				.andExpect(status().is3xxRedirection())<span class="hljs-comment">//表示页面被重定向</span>
+				.andExpect(redirectedUrl(<span class="hljs-string">"https://www.apple.com/cn/itunes/charts/"</span>))<span class="hljs-comment">//验证处理完请求后重定向的url</span>
+		        .andDo(print());<span class="hljs-comment">//打印结果</span>
+		
+	&#125;
+	
+	<span class="hljs-comment">/**
+	 * 用户通过iPad扫描下载APP，则会重定向至评苹果APP官网
+	 */</span>
+	<span class="hljs-meta">@Test</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">TestDownloadAppByIPad</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>&#123;
+		RequestBuilder request = <span class="hljs-keyword">null</span>;
+		<span class="hljs-comment">//构造请求</span>
+		request = get(<span class="hljs-string">"/appProducer/downloadApp"</span>)
+				.header(<span class="hljs-string">"user-agent"</span>, <span class="hljs-string">"iPad"</span>)
+				.param(<span class="hljs-string">"appId"</span>, <span class="hljs-string">"1001"</span>); 
+		<span class="hljs-comment">//执行请求</span>
+		mockMvc.perform(request) 
+		        .andExpect(status().is3xxRedirection())<span class="hljs-comment">//表示页面被重定向</span>
+		        .andExpect(redirectedUrl(<span class="hljs-string">"https://www.apple.com/cn/itunes/charts/"</span>))<span class="hljs-comment">//验证处理完请求后重定向的url</span>
+		        .andDo(print());<span class="hljs-comment">//打印结果</span>
+		
+	&#125;
+	
+	<span class="hljs-comment">/**
+	 * 用户通过其他方式扫描下载APP，则会提示仅支持的下载方式
+	 */</span>
+	<span class="hljs-meta">@Test</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">TestDownloadAppByOther</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>&#123;
+		RequestBuilder request = <span class="hljs-keyword">null</span>;
+		<span class="hljs-comment">//构造请求</span>
+		request = get(<span class="hljs-string">"/appProducer/downloadApp"</span>)
+				.header(<span class="hljs-string">"user-agent"</span>, <span class="hljs-string">"other"</span>)
+				.param(<span class="hljs-string">"appId"</span>, <span class="hljs-string">"1001"</span>); 
+		<span class="hljs-comment">//执行请求</span>
+		mockMvc.perform(request) 
+		        .andExpect(status().isOk())<span class="hljs-comment">//返回HTTP状态为200</span>
+		        .andExpect(content().string(containsString(<span class="hljs-string">"&lt;h1&gt;出现该页面可能是以下原因&lt;/h1&gt;"</span>)))
+		        .andDo(print());<span class="hljs-comment">//打印结果</span>
+		
+	&#125;
+	
+	<span class="hljs-comment">/**
+	 * APP升级
+	 */</span>
+	<span class="hljs-meta">@Test</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">TestUpgradeApp</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>&#123;
+		RequestBuilder request = <span class="hljs-keyword">null</span>;
+		<span class="hljs-comment">//构造请求</span>
+		request = get(<span class="hljs-string">"/appProducer/upgradeApp"</span>)
+				.param(<span class="hljs-string">"appId"</span>, <span class="hljs-string">"1001"</span>); 
+		<span class="hljs-comment">//执行请求</span>
+		mockMvc.perform(request) 
+		        .andExpect(status().isOk())<span class="hljs-comment">//返回HTTP状态为200</span>
+		        .andDo(print());<span class="hljs-comment">//打印结果</span>
+		
+	&#125;</code></pre>
+</li>
+</ul>
+<pre><code class="hljs java"><span class="hljs-meta">@Test</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">controllerTest</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception</span>&#123;
+
+    VoiceData voiceData = <span class="hljs-keyword">new</span> VoiceData();
+    voiceData.setId(<span class="hljs-string">"123"</span>);
+    voiceData.setServiceName(<span class="hljs-string">"jack"</span>);
+
+    VoiceDataBo voiceDataBo = <span class="hljs-keyword">new</span> VoiceDataBo();
+    voiceDataBo.setCallId(<span class="hljs-string">"123"</span>);
+    voiceDataBo.setSeatName(<span class="hljs-string">"tom"</span>);
+
+    List dataList = <span class="hljs-keyword">new</span> ArrayList();
+    dataList.add(voiceData);
+
+    <span class="hljs-comment">/*构造一个请求*/</span>
+    RequestBuilder request = <span class="hljs-keyword">null</span>;
+    request = MockMvcRequestBuilders.post(<span class="hljs-string">"/recordTapImport/voiceData"</span>)
+            .contentType(MediaType.APPLICATION_JSON).content(JSON.toJSONString(dataList));
+
+    <span class="hljs-comment">/*执行一个请求*/</span>
+    mockMvc.perform(request).andDo(print()).andReturn();
+&#125;</code></pre>
+<ul>
+<li>当发送一个被@ResponceBody标识的参数，遇到400的返回错误。<br>  <code>注意上面contentType需要设置成MediaType.APPLICATION_JSON，即声明是发送“application/json”格式的数据。使用content方法，将转换的json数据放到request的body中。</code></li>
+</ul>
+
+            </article>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/单元测试/">单元测试</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" rel="nofollow noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/02/24/Tomcat进程守护脚本/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Tomcat进程守护脚本</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/2019/12/30/hello-world/">
+                        <span class="hidden-mobile">Hello World</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">
+        <span>Fluid</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/main.js" ></script>
+
+
+  <script  src="/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Spring单元测试编写&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
