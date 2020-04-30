@@ -4,8 +4,6 @@ date: 2020-02-24 17:31:15
 tags: 
 - JAVA
 ---
-# Entity，Bo，Vo，Po,Dto,Pojo的理解和区分
-
 
 ## POJO
 plian ordinary java object：简单无规则java对象
