@@ -3,7 +3,7 @@
   - https://travis-ci.com/
   
   
-Travis完成了`将gh-source的分支内容进行自动构建，并提交至master分支`的任务。我的配置文件见/.travis.yml，内容如下：
+Travis完成了`将gh-source的分支内容进行自动构建，并提交至master分支`的任务。我的配置文件见/.travis.yml，内容如下：1
   
 ``` yaml
 language: node_js
