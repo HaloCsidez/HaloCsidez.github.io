@@ -1,11 +1,48 @@
-- name: Hexo Action
-  uses: sma11black/hexo-action@v1.0.1
-  with:
-    # Github user name
-    user_name: halocsidez # default is github-actions[bot]
-    # Github email
-    user_email: csidez@163.com # default is 41898282+github-actions[bot]@users.noreply.github.com
-    # The deploy key for Github Pages repo
-    deploy_key: # default is 
-    # Git commit messages to your GitHub Pages repository.
-    commit_msg: Github Action # optional, default is 
+# workflow name
+name: Hexo Blog CI
+
+# master branch on push, auto run
+on: 
+  push:
+    branches:
+      - master
+      
+jobs:
+  build: 
+    runs-on: ubuntu-latest 
+        
+    steps:
+    # check it to your workflow can access it
+    # from: https://github.com/actions/checkout
+    - name: Checkout Repository master branch
+      uses: actions/checkout@master 
+      
+    # from: https://github.com/actions/setup-node  
+    - name: Setup Node.js 10.x 
+      uses: actions/setup-node@master
+      with:
+        node-version: "10.x"
+    
+    - name: Setup Hexo Dependencies
+      run: |
+        npm install hexo-cli -g
+        npm install
+    
+    - name: Setup Deploy Private Key
+      env:
+        HEXO_DEPLOY_PRIVATE_KEY: ${{ secrets.ACTION_DEPLOY_KEY }}
+      run: |
+        mkdir -p ~/.ssh/
+        echo "$HEXO_DEPLOY_PRIVATE_KEY" > ~/.ssh/id_rsa 
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        
+    - name: Setup Git Infomation
+      run: | 
+        git config --global user.name '名字' 
+        git config --global user.email '邮件'
+    - name: Deploy Hexo 
+      run: |
+        hexo clean
+        hexo generate 
+        hexo deploy
