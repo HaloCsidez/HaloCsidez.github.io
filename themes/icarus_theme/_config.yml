@@ -183,7 +183,7 @@ widgets:
         # Author's current location
         location: HangZhou
         # URL or path to the avatar image
-        avatar: /img/user.png
+        avatar: /img/user.jpeg
         # Whether show the rounded avatar image
         avatar_rounded: false
         # Email address for the Gravatar
