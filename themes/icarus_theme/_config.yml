@@ -13,7 +13,7 @@ head:
     open_graph:
         # Page title (og:title) (optional)
         # You should leave this blank for most of the time
-        title: 🥤MilkTea YES！
+        title: 🥤HELLO EVERYONE！
         # Page type (og:type) (optional)
         # You should leave this blank for most of the time
         type: blog
@@ -79,10 +79,10 @@ navbar:
         Tags: /tags
         About: /about
     # Links to be shown on the right of the navigation bar
-    links:
-        Download on GitHub:
-            icon: fab fa-github
-            url: 'https://github.com/ppoffice/hexo-theme-icarus'
+    # links:
+    #     Download on GitHub:
+    #         icon: fab fa-github
+    #         url: 'https://github.com/ppoffice/hexo-theme-icarus'
 # Page footer configurations
 footer:
     # Links to be shown on the right of the footer section
@@ -177,11 +177,11 @@ widgets:
         position: left
         type: profile
         # Author name
-        author: Your name
+        author: 一头大犀牛
         # Author title
-        author_title: Your title
+        author_title: 考研ing...
         # Author's current location
-        location: Your location
+        location: HangZhou
         # URL or path to the avatar image
         avatar: /img/user.png
         # Whether show the rounded avatar image
@@ -189,18 +189,18 @@ widgets:
         # Email address for the Gravatar
         gravatar: 
         # URL or path for the follow button
-        follow_link: 'https://github.com/ppoffice'
+        follow_link: 'https://github.com/HaloCsidez'
         # Links to be shown on the bottom of the profile widget
-        social_links:
-            Github:
-                icon: fab fa-github
-                url: 'https://github.com/HaloCsidez'
+        # social_links:
+        #     Github:
+        #         icon: fab fa-github
+        #         url: 'https://github.com/HaloCsidez'
             # Facebook:
             #     icon: fab fa-facebook
             #     url: 'https://facebook.com'
-            Twitter:
-                icon: fab fa-twitter
-                url: 'https://twitter.com'
+            # Twitter:
+            #     icon: fab fa-twitter
+            #     url: 'https://twitter.com'
             # Dribbble:
             #     icon: fab fa-dribbble
             #     url: 'https://dribbble.com'
@@ -215,7 +215,7 @@ widgets:
     # Recommendation links widget configurations
     -
         # Where should the widget be placed, left sidebar or right sidebar
-        position: left
+        position: none
         type: links
         # Names and URLs of the sites
         links:
@@ -224,7 +224,7 @@ widgets:
     # Categories widget configurations
     -
         # Where should the widget be placed, left sidebar or right sidebar
-        position: right
+        position: none
         type: categories
     # Recent posts widget configurations
     -
@@ -239,7 +239,7 @@ widgets:
     # Tags widget configurations
     -
         # Where should the widget be placed, left sidebar or right sidebar
-        position: right
+        position: left
         type: tags
     # Google FeedBurner email subscription widget configurations
     -
@@ -253,7 +253,7 @@ widgets:
     # Google AdSense unit configurations
     -
         # Where should the widget be placed, left sidebar or right sidebar
-        position: left
+        position: none
         type: adsense
         # AdSense client ID
         client_id: ''
