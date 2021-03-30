@@ -244,7 +244,7 @@ widgets:
     # Google FeedBurner email subscription widget configurations
     -
         # Where should the widget be placed, left sidebar or right sidebar
-        position: right
+        position: none
         type: subscribe_email
         # Hint text under the email input
         description: 
