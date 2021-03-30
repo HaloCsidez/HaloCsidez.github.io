@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.1"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>🥤HELLO EVERYONE！</title><meta property="og:type" content="blog"><meta property="og:title" content="🥤HELLO EVERYONE！"><meta property="og:url" content="https://blog.csidez.com/"><meta property="og:site_name" content="🥤HELLO EVERYONE！"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://blog.csidez.com/img/og_image.png"><meta property="article:author" content="csidez"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.csidez.com"},"headline":"🥤HELLO EVERYONE！","image":["https://blog.csidez.com/img/og_image.png"],"author":{"@type":"Person","name":null},"description":null}</script><link rel="icon" href="/img/favicon.svg"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/favicon.png" alt="🥤HELLO EVERYONE！" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item is-active" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-6-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2021-03-05T13:12:02.000Z" title="2021-03-05T13:12:02.000Z">2021-03-05</time><span class="level-item">3 分钟 读完 (大约 423 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2021/03/05/spring-beans%E7%9A%84%E4%B8%80%E4%BA%9B%E7%90%86%E8%A7%A3/">spring-beans的一些理解</a></h1><div class="content"><h2 id="SimpleAliasRegistry"><a href="#SimpleAliasRegistry" class="headerlink" title="SimpleAliasRegistry"></a>SimpleAliasRegistry</h2><p>simpleAliasRegistry实现了aliasRegistry，aliasRegistry定义了对benas的alias的一些增删改查操作。</p>
+<ul>
+<li><p>public void registerAlias(String name, String alias)</p>
+<ul>
+<li>判断入参是否为空</li>
+<li><p>锁定aliasMap</p>
+<ul>
+<li>name与alias是否相同；</li>
+<li>判断是否可能出现不同alias对应同一个name的情况；</li>
+<li>根据allowAliasOverriding决定是否存入这一对键值对；</li>
+<li>通过以下代码判断，来避免出现同一个alias不同class的问题；</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasAlias</span><span class="params">(String name, String alias)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, String&gt; entry : <span class="keyword">this</span>.aliasMap.entrySet()) &#123;</span><br><span class="line">      String registeredName = entry.getValue();</span><br><span class="line">      <span class="keyword">if</span> (registeredName.equals(name)) &#123;</span><br><span class="line">        String registeredAlias = entry.getKey();</span><br><span class="line">        <span class="keyword">if</span> (registeredAlias.equals(alias) || hasAlias(registeredAlias, alias)) &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>最后使用了put方法塞入。<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.aliasMap.put(alias, name);</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><code>由此可以得出，rigisterAlias在配置允许（即在对其方法进行复写后）的情况下可以存在同一个class对应不同的alias，但是绝对不允许出现不同的class对应同一个alias</code></p>
+<ul>
+<li><p>public void removeAlias(String alias)</p>
+<p>使用map的remove方法尝试移除alias，但是若返回定name为null则表示不存在其alias</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String name = <span class="keyword">this</span>.aliasMap.remove(alias);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>public boolean isAlias(String name)</p>
+<p>利用map的contain方法判断该class是否存在别名</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.aliasMap.containsKey(name);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>public String[] getAliases(String name)</p>
+</li>
+</ul>
+<p>由于在注册的时候说过在特殊情况下允许一个class对于多个alias，因此返回的可能是多个alias。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">retrieveAliases</span><span class="params">(String name, List&lt;String&gt; result)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.aliasMap.forEach((alias, registeredName) -&gt; &#123;</span><br><span class="line">			<span class="keyword">if</span> (registeredName.equals(name)) &#123;</span><br><span class="line">				result.add(alias);</span><br><span class="line">				retrieveAliases(alias, result);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>其中在判断过程中使用到了递归，利用alias与registeredName进行比较，为了避免map别名套别名的情况。例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.aliasMap.put(<span class="string">"char1"</span>,<span class="string">"java.lang.Char"</span>);</span><br><span class="line"><span class="keyword">this</span>.aliasMap.put(<span class="string">"byte"</span>,<span class="string">"char1"</span>);</span><br></pre></td></tr></table></figure>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2021-03-01T12:10:06.000Z" title="2021-03-01T12:10:06.000Z">2021-03-01</time><span class="level-item">5 分钟 读完 (大约 818 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2021/03/01/m%E5%88%B0n%E7%9A%84%E8%B7%AF%E5%BE%84/">在二叉树中有两个结点m和n，若m是n的祖先，则使用后序遍历可以找到从m到n的路径</a></h1><div class="content"><p>首先需要理解的是，前中后序遍历都是通过递归的方式，将后来需要用到的结点保存在栈中，比如下面这颗树：<br><img src="https://csidezyum.oss-cn-hangzhou.aliyuncs.com/blogImg/20190311000511.png" alt=""></p>
+<p>如果是前序遍历，根左右，过程是：根节点m入栈并输出，访问m的左孩子a，a入栈并输出，访问a的左孩子c，c入栈并输出，c没有左孩子，无元素入栈，c没有右孩子，无元素入栈，c出栈，此时栈顶元素为a，访问a元素的右孩子d，d入栈并输出，d没有左孩子，无元素入栈，d没有右孩子，无元素入栈，d出栈，a左右子树都访问完了所以出栈，<strong>现在栈顶元素是m，m已经没有作用了所以出栈</strong>，访问m的右孩子b，m的右孩子b入栈并输出，接着访问b的左孩子e，e入栈并输出……</p>
+<p>如果中序遍历，左根右，过程是：根节点m入栈，访问m的左孩子，所以m的左孩子a入栈，访问a的左孩子，所以a的左孩子c入栈，c没有左孩子，c现在输出并出栈，c没有右孩子所以没有元素入栈，现在栈顶元素是a，a输出并出栈，a的右孩子d入栈，此时d没有左孩子所以没有元素入栈，d输出并出栈，d没有右孩子所以没有元素入栈，<strong>现在栈顶元素是m，m输出，此时m已经没有作用了所以出栈</strong>，m的右孩子b入栈，访问b的左孩子，所以b的左孩子e入栈……</p>
+<p>所以在前序和中序的过程中，如果n在m的右子树部分，遍历过程中找到了n，但是m已经不在栈中，因为栈中只会保留等会需要用到的e和b结点，而m已经完成了访问根结点和m的左子树的任务，已经被出栈，<strong>所以无法追溯n如何走到m</strong></p>
+<p>但是后序遍历就不一样啦，后序的顺序是左右根，所以只要m的左右子树还没遍历完成，m就不能出栈，在遍历m的左右子树过程中，无论在m的左边还是右边找到了n，都可以直接返回然后<strong>根据栈中的路径让n找到回到m的路</strong>，这样就能找到m到n的路径～</p>
+<p>所以一旦n在m的右子树，且离的较远，m就会在前序和中序的过程中因为已经完成了访问左、访问根的任务，而被栈遗忘，让找到了n的时候也不知怎么回到m……而只有后序会让作为祖先（子树的根）的m永远被铭记直到n找到m为止…</p>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-04-01T22:16:14.000Z" title="2020-04-01T22:16:14.000Z">2020-04-01</time><span class="level-item">4 分钟 读完 (大约 669 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2020/04/01/%E9%9D%A2%E8%AF%95%E4%B8%ADKafka%E7%9A%84%E9%97%AE%E9%A2%98/">面试中Kafka的问题</a></h1><div class="content"><h2 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>分布式流处理平台</p>
+<ul>
+<li><p>流平台的三个关键功能：</p>
+<pre><code>1. 消息队列：发布和订阅消息流，这个功能类似于消息队列，这也是 Kafka 也被归类为消息队列的原因；
+2. 容错的持久方式存储记录消息流： Kafka 会把消息持久化到磁盘，有效避免了消息丢失的风险；
+3. 流式处理平台： 在消息发布的时候进行处理，Kafka 提供了一个完整的流式处理类库。
+</code></pre></li>
+<li><p>应用场景：</p>
+<pre><code>1. 消息队列： 建立实时流数据管道，在系统或者应用程序之间获取数据；
+2. 数据处理： 构建实时的流处理程序来转换或处理数据流
+</code></pre></li>
+<li><p>关键词</p>
+<pre><code>1. Producer 产生消息的一方。
+2. Consumer
+3. Broker
+4. Topic
+5. Partition
+</code></pre></li>
+</ul>
+<h3 id="易产生的问题"><a href="#易产生的问题" class="headerlink" title="易产生的问题"></a>易产生的问题</h3><p>消费端重复消费：很容易解决，建立去重表</p>
+<p>消费端丢失数据：也容易解决，关闭自动提交offset，处理完之后受到移位</p>
+<p>生产端重复发送：这个不重要，消费端消费之前从去重表中判重就可以</p>
+<p>生产端丢失数据：这个是最麻烦的情况</p>
+<ul>
+<li>解决策略：</li>
+</ul>
+<p>1.异步方式缓冲区满了，就阻塞在那，等着缓冲区可用，不能清空缓冲区</p>
+<p>2.发送消息之后回调函数，发送成功就发送下一条，发送失败就记在日志中，等着定时脚本来扫描</p>
+<p>（发送失败可能并不真的发送失败，只是没收到反馈，定时脚本可能会重发）</p>
+<ul>
+<li>如何保证有序：</li>
+</ul>
+<p>如果有一个发送失败了，后面的就不能继续发了，不然重发的那个肯定乱序了</p>
+<p>生产者在收到发送成功的反馈之前，不能发下一条数据，但我感觉生产者是一个流，阻塞生产者感觉业务上不可行，怎么会因为一条消息发出去没收到反馈，就阻塞生产者</p>
+<p>同步发送模式：发出消息后，必须阻塞等待收到通知后，才发送下一条消息</p>
+<p>异步发送模式：一直往缓冲区写，然后一把写到队列中去</p>
+<p>两种都是各有利弊：</p>
+<p>同步发送模式虽然吞吐量小，但是发一条收到确认后再发下一条，既能保证不丢失消息，又能保证顺序</p>
+<p>Java使用Apache.Kafka的jar包</p>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-02-28T16:20:19.000Z" title="2020-02-28T16:20:19.000Z">2020-02-28</time><span class="level-item">3 分钟 读完 (大约 478 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2020/02/28/%E5%B7%A6%E5%8F%B3%E5%80%BC%E7%BC%96%E7%A0%81%E6%A0%91/">左右值编码树</a></h1><div class="content"><p>公司侧边栏数据展开很慢，查看代码后发现前辈是用父子结构递归解析侧边栏数据树的。想到自己先前的一个项目也是这样实现，当时在数据量很少的情况中没发现问题，然而在数据达到800多就导致后端数据梳理慢，前端渲染慢点问题。</p>
+<ul>
+<li><p>传统树状结构设计的问题</p>
+<p>id｜value｜parentId｜key｜level </p>
+<p>(根据业务情况可适当加一些parent_path之类的冗余字段提升性能，降低查询编码复杂度)</p>
+<p>这种结构在数据层级叫少的情况下是比较好的设计方案且结构简单易懂，但是一旦数据层级多了查询就会成问题，需要频繁递归操作，递归过程需要不断访问数据库。很难快速的查找某个节点下所有子节点，或者查询这个节点的族谱路径并且把数据查出来以后撮合成树状结构也需要花费很多时间。</p>
+</li>
+<li><p>传统树状结构设计的问题</p>
+<p>id｜leftId｜rightId｜value｜level（可以加parentId）</p>
+<p>而左右值编码树有高效的数据查询性能，数据存储冗余度小。</p>
+<p><img src="https://csidezyum.oss-cn-hangzhou.aliyuncs.com/blogImg/download.jpg" alt="download"></p>
+</li>
+</ul>
+<ol>
+<li><p>获得B节点的子孙节点（寻找leftId或者rightId在2和13之间的节点）</p>
+<blockquote>
+<p>SELECT* FROM Tree WHERE Lft BETWEEN 2 AND 13 ORDER BY Lft ASC</p>
+</blockquote>
+</li>
+<li><p>计算子孙节点的个数</p>
+<p>子孙总数 = (右值 – 左值– 1) / 2</p>
+</li>
+<li><p>计算当前节点所在层次（leftId小于等于2并且rightId大于等于13的个数就是他的层数）</p>
+<blockquote>
+<p>SELECT COUNT(*) FROM Tree WHERE Lft &lt;= 2 AND Rgt &gt;=13</p>
+</blockquote>
+</li>
+<li><p>新增一个节点</p>
+<p>该节点的后续节点的rightId自增2</p>
+<p><img src="https://csidezyum.oss-cn-hangzhou.aliyuncs.com/blogImg/download-1.jpg" alt="download"></p>
+</li>
+</ol>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-02-24T17:31:15.000Z" title="2020-02-24T17:31:15.000Z">2020-02-24</time><span class="level-item">4 分钟 读完 (大约 618 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2020/02/24/Entity%EF%BC%8CBo%EF%BC%8CVo%EF%BC%8CPo,Dto,Pojo%E7%9A%84%E7%90%86%E8%A7%A3%E5%92%8C%E5%8C%BA%E5%88%86/">Entity，Bo，Vo，Po,Dto,Pojo的理解和区分</a></h1><div class="content"><h2 id="POJO"><a href="#POJO" class="headerlink" title="POJO"></a>POJO</h2><p>plian ordinary java object：简单无规则java对象<br>纯的传统意义的java对象，最基本的Java Bean只有属性加上属性的get和set方法</p>
+<p>可以额转化为PO、DTO、VO；比如POJO在传输过程中就是DTO</p>
+<h2 id="PO和Entity"><a href="#PO和Entity" class="headerlink" title="PO和Entity"></a>PO和Entity</h2><ul>
+<li>entity:<br> 最常用实体类，基本和数据表一一对应，一个实体一张表。</li>
+<li><p>Po:<br> 代表持久层对象的意思，对应数据库中表的字段，数据库表中的记录在java对象中的显示状态，最形象的理解就是一个PO就是数据库中的一条记录。</p>
+<p> 好处是可以把一条记录作为一个对象处理，可以方便的转为其它对象。Vo和Po，都是属性加上属性的get和set方法；表面看没什么不同，但代表的含义是完全不同的。</p>
+</li>
+<li>总结：所以Po和Entity有什么区别呢？…..</li>
+</ul>
+<h2 id="Bo"><a href="#Bo" class="headerlink" title="Bo"></a>Bo</h2><p>很明显就是business object，业务对象。<br>Bo就是把业务逻辑封装为一个对象（注意是逻辑，业务逻辑），这个对象可以包括一个或多个其它的对象。通过调用Dao方法，结合Po或Vo进行业务操作。</p>
+<p>投保人是一个Po，被保险人是一个Po，险种信息也是一个Po等等，他们组合起来就是一张保单的Bo。</p>
+<ul>
+<li>保单信息（Bo）<ul>
+<li>投保人信息（Po）</li>
+<li>被保险人信息（Po）</li>
+<li>险种信息（Po）<h2 id="Vo"><a href="#Vo" class="headerlink" title="Vo"></a>Vo</h2>个人认为叫View Object更加合适。</li>
+</ul>
+</li>
+</ul>
+<p>代表值对象的意思，通常用于业务层之间的数据传递，由new创建，由GC回收。<br>主要体现在视图的对象，对于一个WEB页面将整个页面的属性封装成一个对象，然后用一个VO对象在控制层与视图层进行传输交换。</p>
+<h2 id="Dto"><a href="#Dto" class="headerlink" title="Dto"></a>Dto</h2><p>代表数据传输对象的意思</p>
+<p>简而言之，就是接口之间传递的数据封装。表里面有十几个字段：id，name，gender（M/F)，age……而页面需要展示三个字段：name，gender(男/女)，age</p>
+<p>DTO由此产生，一是能提高数据传输的速度(减少了传输字段)，二能隐藏后端表结构</p>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-02-24T13:46:30.000Z" title="2020-02-24T13:46:30.000Z">2020-02-24</time><span class="level-item">4 分钟 读完 (大约 547 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2020/02/24/Tomcat%E8%BF%9B%E7%A8%8B%E5%AE%88%E6%8A%A4%E8%84%9A%E6%9C%AC/">Tomcat进程守护脚本</a></h1><div class="content"><p>迫于公司测试服务器上的几个子站经常时不时的挂掉，又查不明原因。<br>谷歌了以后说要把jdbc移出来放到tomcat的lib目录下，让tomcat进行管理。可是怎么实验都没有，恰巧正式服务器上的进程又是好的，于是，有了一下的进程守护脚本。</p>
+<h2 id="使用环境"><a href="#使用环境" class="headerlink" title="使用环境"></a>使用环境</h2><ul>
+<li>操作系统:CentOS7.2</li>
+<li>JDK版本:Java HotSpot(TM) 64-Bit Server VM (build 24.80-b11, mixed mode)</li>
+<li>Tomcat版本:apache-tomcat-7.0.70</li>
+</ul>
+<h2 id="监控脚本"><a href="#监控脚本" class="headerlink" title="监控脚本"></a>监控脚本</h2><pre><code>#!/bin/bash
+#
+# mail：zhouhaibin@utry.cn
+# 定时检查tomcat状态
+# 当在进程中查询不到该tomcat则进行重启
+# 
+# 需要添加至定时任务crontab中
+# 1. crontab -e
+# 2. */3 * * * * &quot;/home/test/deamon2tomcat.sh&quot; &gt; /dev/null 2&gt;&amp;1
+# 注：每3分钟检查一次(可修改)，加“&gt; /dev/null 2&gt;&amp;1 ”是为了不让它发邮件。
+
+export PATH=$PATH:/sbin:/bin:/usr/sbin:/usr/bin;
+tomcat_base_dir=&quot;/home/tomservices&quot;;
+log_file=&quot;/home/tomservices/tomcat_protect_log.log&quot;;
+d=$(date +%F&quot; &quot;%T);
+
+# 初始化日志文件
+touch ${log_file}
+
+do_restart_tomcat() {
+    # 不管是否再运行中先关闭服务
+    ${tomcat_base_dir}/$1/bin/shutdown.sh
+
+    # 在进程中检查当前当tomcat是否正在运行并杀死该进程（为了防止shotdown.sh失败）
+    if ps -ef | grep $1 | grep -v grep
+    then
+        kill -9 $(ps -ef | grep $1 | grep -v grep | awk &apos;{print $2}&apos;)
+    fi
+
+    # 重启tomcat
+    ${tomcat_base_dir}/$1/bin/startup.sh
+    # 输出进程号
+    echo &quot;$d success restart $1, the new pid is &quot; &gt;&gt; ${log_file}
+    ps -ef | grep $1 | grep -v grep | awk &apos;{print $2}&apos; &gt;&gt; ${log_file}
+    echo &gt;&gt; ${log_file}
+}
+
+echo &quot;$d start check the three server:&quot; &gt;&gt; ${log_file}
+# 循环检查一下三个子站是否正在运行并输出相应日志
+for n in &quot;tomcat_devback&quot; &quot;tomcat_hsipccweb&quot; &quot;tomcat_ccweb&quot;
+do
+echo &quot;$d checking the $n...&quot; &gt;&gt; ${log_file}
+    if ps -ef | grep $n | grep -v grep
+    then
+        echo &quot;$d finished the check of the $n&quot; &gt;&gt; ${log_file}
+    else
+        echo &quot;$d can not found $n, try to restart it ......&quot; &gt;&gt; ${log_file}
+        do_restart_tomcat $n
+    fi
+done
+</code></pre><h2 id="加入定时任务crontab"><a href="#加入定时任务crontab" class="headerlink" title="加入定时任务crontab"></a>加入定时任务crontab</h2><h3 id="编辑任务"><a href="#编辑任务" class="headerlink" title="编辑任务"></a>编辑任务</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crontab -e</span><br></pre></td></tr></table></figure>
+<p>进入编辑crontab的vi界面，按i键进入插入模式，将如下代码复制到输入界面<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*&#x2F;20 * * * * &quot;&#x2F;home&#x2F;test&#x2F;deamon2tomcat.sh&quot; &gt; &#x2F;dev&#x2F;null 2&gt;&amp;1</span><br></pre></td></tr></table></figure><br><code>注：每20分钟检查一次(可修改)，加“&gt; /dev/null 2&gt;&amp;1 ”是为了不让它发邮件。</code></p>
+<h3 id="保存退出"><a href="#保存退出" class="headerlink" title="保存退出"></a>保存退出</h3><h3 id="查看任务"><a href="#查看任务" class="headerlink" title="查看任务"></a>查看任务</h3><p>最后查看任务，确认是否编辑成功。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crontab -l</span><br></pre></td></tr></table></figure></p>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-01-22T14:09:01.000Z" title="2020-01-22T14:09:01.000Z">2020-01-22</time><span class="level-item">7 分钟 读完 (大约 985 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2020/01/22/Spring%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%BC%96%E5%86%99/">Spring单元测试编写</a></h1><div class="content"><h1 id="SpringBoot单元测试"><a href="#SpringBoot单元测试" class="headerlink" title="SpringBoot单元测试"></a>SpringBoot单元测试</h1><h2 id="Controller层"><a href="#Controller层" class="headerlink" title="Controller层"></a>Controller层</h2><h3 id="登录校验-一般情况不使用"><a href="#登录校验-一般情况不使用" class="headerlink" title="登录校验(一般情况不使用)"></a>登录校验(一般情况不使用)</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith</span>(SpringRunner<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">@<span class="title">Transactional</span>//测试结束后<span class="title">rollback</span></span></span><br><span class="line"><span class="class">@<span class="title">SpringBootTest</span></span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">abstract</span> <span class="title">class</span> <span class="title">BaseTest</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> LoginBean LOGINBEAN;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        LoginBean.Builder builder = <span class="keyword">new</span> LoginBean.Builder();</span><br><span class="line">        builder.setAccountID(<span class="string">"7f2b815be57541549b7c4cd1e81f2923"</span>);</span><br><span class="line">        builder.setCompanyID(<span class="string">"08d181119a7b4c0e94ff368942fd4420"</span>);</span><br><span class="line">        builder.setLoginName(<span class="string">"utry"</span>);</span><br><span class="line">        builder.setRealName(<span class="string">"远传"</span>);</span><br><span class="line">        LOGINBEAN = builder.build();</span><br><span class="line">        LoginInfo.putSp(LOGINBEAN);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">protected</span> ICacheService cache;</span><br><span class="line">    </span><br><span class="line">    &#123;</span><br><span class="line">        init();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        preloadModules();</span><br><span class="line">        splitMapper();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">preloadModules</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        UtryCloudModuleManager.initModules();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">splitMapper</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> MybatisMapperSplitListener(<span class="string">"mapper"</span>).onApplicationEvent(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Before</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setUp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        LoginInfo.setThreadLocal(cache, LOGINBEAN);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="注解"><a href="#注解" class="headerlink" title="注解"></a>注解</h3><ul>
+<li>测试类注解<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith</span>(SpringRunner<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">@<span class="title">SpringBootTest</span></span></span><br></pre></td></tr></table></figure></li>
+<li>模拟MVC环境注解以及代码<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> MockMVC mockMVC</span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> WebApplicationContext webApplicationContext;</span><br></pre></td></tr></table></figure></li>
+<li>通过@Before方法，提前准备测试环境</li>
+</ul>
+<p><code>注意（此处的MockMvc 实例化是通过手工方式创建，如果想通过spring的bean注入方式的话，在类上加@AutoConfigureMockMvc/@Controller等注解，只要等同于@Component效果即可，然后在上面的第2步中进行注入，即在成员变量mockMvc上加注解@Autowired）</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Before</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setup</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="comment">/*通过bean注入方式</span></span><br><span class="line"><span class="comment">    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*手动指定需要测试controller类*/</span></span><br><span class="line">    mockMvc = MockMvcBuilders.standaloneSetup(<span class="keyword">new</span> RecordTapDataImportController()).build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="编写测试方法-Test"><a href="#编写测试方法-Test" class="headerlink" title="编写测试方法@Test"></a>编写测试方法@Test</h3><ul>
+<li>普通的测试方法<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取最新app信息</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">TestGetAppLatestVersion</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		RequestBuilder request = <span class="keyword">null</span>;</span><br><span class="line">		<span class="comment">//构造请求</span></span><br><span class="line">		request = post(<span class="string">"/appProducer/getAppLatestVersion"</span>) </span><br><span class="line">				.param(<span class="string">"appId"</span>, <span class="string">"1001"</span>); </span><br><span class="line">		<span class="comment">//执行请求</span></span><br><span class="line">		mockMvc.perform(request) </span><br><span class="line">		        .andExpect(status().isOk())<span class="comment">//返回HTTP状态为200</span></span><br><span class="line">		        .andExpect(jsonPath(<span class="string">"$.status"</span>, not(<span class="string">"E"</span>)))<span class="comment">//使用jsonPath解析JSON返回值，判断具体的内容, 此处不希望status返回E</span></span><br><span class="line">		        .andDo(print());<span class="comment">//打印结果</span></span><br><span class="line">		        <span class="comment">//.andReturn();//想要返回结果，使用此方法</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 用户通过微信方式扫描下载APP，则会提示使用浏览器打开地址</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">TestDownloadAppByMicroMessenger</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		RequestBuilder request = <span class="keyword">null</span>;</span><br><span class="line">		<span class="comment">//构造请求</span></span><br><span class="line">		request = get(<span class="string">"/appProducer/downloadApp"</span>)</span><br><span class="line">				.header(<span class="string">"user-agent"</span>, <span class="string">"MicroMessenger"</span>)</span><br><span class="line">				.param(<span class="string">"appId"</span>, <span class="string">"1001"</span>); </span><br><span class="line">		<span class="comment">//执行请求</span></span><br><span class="line">		mockMvc.perform(request) </span><br><span class="line">		        .andExpect(status().isOk())<span class="comment">//返回HTTP状态为200</span></span><br><span class="line">		        .andExpect(content().string(containsString(<span class="string">"选择浏览器打开即可"</span>)))<span class="comment">//返回结果中需包含的文字</span></span><br><span class="line">		        .andDo(print());<span class="comment">//打印结果</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 用户通过Android扫描下载APP</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">TestDownloadAppByAndroid</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		RequestBuilder request = <span class="keyword">null</span>;</span><br><span class="line">		<span class="comment">//构造请求</span></span><br><span class="line">		request = get(<span class="string">"/appProducer/downloadApp"</span>)</span><br><span class="line">				.header(<span class="string">"user-agent"</span>, <span class="string">"Android"</span>)</span><br><span class="line">				.param(<span class="string">"appId"</span>, <span class="string">"1001"</span>); </span><br><span class="line">		<span class="comment">//执行请求</span></span><br><span class="line">		mockMvc.perform(request) </span><br><span class="line">		        .andExpect(status().isOk())<span class="comment">//返回HTTP状态为200</span></span><br><span class="line">		        .andDo(print());<span class="comment">//打印结果</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 用户通过iPhone扫描下载APP，则会重定向至评苹果APP官网</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">TestDownloadAppByIphone</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		RequestBuilder request = <span class="keyword">null</span>;</span><br><span class="line">		<span class="comment">//构造请求</span></span><br><span class="line">		request = get(<span class="string">"/appProducer/downloadApp"</span>)</span><br><span class="line">				.header(<span class="string">"user-agent"</span>, <span class="string">"iPhone"</span>)</span><br><span class="line">				.param(<span class="string">"appId"</span>, <span class="string">"1001"</span>); </span><br><span class="line">		<span class="comment">//执行请求</span></span><br><span class="line">		mockMvc.perform(request) </span><br><span class="line">				.andExpect(status().is3xxRedirection())<span class="comment">//表示页面被重定向</span></span><br><span class="line">				.andExpect(redirectedUrl(<span class="string">"https://www.apple.com/cn/itunes/charts/"</span>))<span class="comment">//验证处理完请求后重定向的url</span></span><br><span class="line">		        .andDo(print());<span class="comment">//打印结果</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 用户通过iPad扫描下载APP，则会重定向至评苹果APP官网</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">TestDownloadAppByIPad</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		RequestBuilder request = <span class="keyword">null</span>;</span><br><span class="line">		<span class="comment">//构造请求</span></span><br><span class="line">		request = get(<span class="string">"/appProducer/downloadApp"</span>)</span><br><span class="line">				.header(<span class="string">"user-agent"</span>, <span class="string">"iPad"</span>)</span><br><span class="line">				.param(<span class="string">"appId"</span>, <span class="string">"1001"</span>); </span><br><span class="line">		<span class="comment">//执行请求</span></span><br><span class="line">		mockMvc.perform(request) </span><br><span class="line">		        .andExpect(status().is3xxRedirection())<span class="comment">//表示页面被重定向</span></span><br><span class="line">		        .andExpect(redirectedUrl(<span class="string">"https://www.apple.com/cn/itunes/charts/"</span>))<span class="comment">//验证处理完请求后重定向的url</span></span><br><span class="line">		        .andDo(print());<span class="comment">//打印结果</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 用户通过其他方式扫描下载APP，则会提示仅支持的下载方式</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">TestDownloadAppByOther</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		RequestBuilder request = <span class="keyword">null</span>;</span><br><span class="line">		<span class="comment">//构造请求</span></span><br><span class="line">		request = get(<span class="string">"/appProducer/downloadApp"</span>)</span><br><span class="line">				.header(<span class="string">"user-agent"</span>, <span class="string">"other"</span>)</span><br><span class="line">				.param(<span class="string">"appId"</span>, <span class="string">"1001"</span>); </span><br><span class="line">		<span class="comment">//执行请求</span></span><br><span class="line">		mockMvc.perform(request) </span><br><span class="line">		        .andExpect(status().isOk())<span class="comment">//返回HTTP状态为200</span></span><br><span class="line">		        .andExpect(content().string(containsString(<span class="string">"&lt;h1&gt;出现该页面可能是以下原因&lt;/h1&gt;"</span>)))</span><br><span class="line">		        .andDo(print());<span class="comment">//打印结果</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * APP升级</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">TestUpgradeApp</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">		RequestBuilder request = <span class="keyword">null</span>;</span><br><span class="line">		<span class="comment">//构造请求</span></span><br><span class="line">		request = get(<span class="string">"/appProducer/upgradeApp"</span>)</span><br><span class="line">				.param(<span class="string">"appId"</span>, <span class="string">"1001"</span>); </span><br><span class="line">		<span class="comment">//执行请求</span></span><br><span class="line">		mockMvc.perform(request) </span><br><span class="line">		        .andExpect(status().isOk())<span class="comment">//返回HTTP状态为200</span></span><br><span class="line">		        .andDo(print());<span class="comment">//打印结果</span></span><br><span class="line">		</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">controllerTest</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line"></span><br><span class="line">    VoiceData voiceData = <span class="keyword">new</span> VoiceData();</span><br><span class="line">    voiceData.setId(<span class="string">"123"</span>);</span><br><span class="line">    voiceData.setServiceName(<span class="string">"jack"</span>);</span><br><span class="line"></span><br><span class="line">    VoiceDataBo voiceDataBo = <span class="keyword">new</span> VoiceDataBo();</span><br><span class="line">    voiceDataBo.setCallId(<span class="string">"123"</span>);</span><br><span class="line">    voiceDataBo.setSeatName(<span class="string">"tom"</span>);</span><br><span class="line"></span><br><span class="line">    List dataList = <span class="keyword">new</span> ArrayList();</span><br><span class="line">    dataList.add(voiceData);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*构造一个请求*/</span></span><br><span class="line">    RequestBuilder request = <span class="keyword">null</span>;</span><br><span class="line">    request = MockMvcRequestBuilders.post(<span class="string">"/recordTapImport/voiceData"</span>)</span><br><span class="line">            .contentType(MediaType.APPLICATION_JSON).content(JSON.toJSONString(dataList));</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*执行一个请求*/</span></span><br><span class="line">    mockMvc.perform(request).andDo(print()).andReturn();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>当发送一个被@ResponceBody标识的参数，遇到400的返回错误。<br>  <code>注意上面contentType需要设置成MediaType.APPLICATION_JSON，即声明是发送“application/json”格式的数据。使用content方法，将转换的json数据放到request的body中。</code></li>
+</ul>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-08-05T10:58:11.000Z" title="2019-08-05T10:58:11.000Z">2019-08-05</time><span class="level-item">8 分钟 读完 (大约 1187 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2019/08/05/%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B/">存储过程</a></h1><div class="content"><h1 id="存储过程与存储函数"><a href="#存储过程与存储函数" class="headerlink" title="存储过程与存储函数"></a>存储过程与存储函数</h1><h2 id="解释"><a href="#解释" class="headerlink" title="解释"></a>解释</h2><p>储存程序 (Stored Procedure)，又可称预储程序或者存储过程，是一种在数据库中存储复杂程序，以便外部程序调用的一种数据库对象，它可以视为数据库中的一种函数或子程序。</p>
+<p><code>存储在数据库中，供所有用户程序调用的子程序</code></p>
+<ul>
+<li><p>优点</p>
+<ol>
+<li>重复使用。存储过程可以重复使用，从而可以减少数据库开发人员的工作量。</li>
+<li>减少网络流量。存储过程位于服务器上，调用的时候只需要传递存储过程的名称以及参数就可以了，因此降低了网络传输的数据量。</li>
+<li>安全性。参数化的存储过程可以防止SQL注入式攻击，而且可以将Grant、Deny以及Revoke权限应用于存储过程。</li>
+<li>效率高。由于数据库执行动作时，是先编译后执行的。然而存储过程是一个编译过的代码块，所以执行效率要比T-SQL语句高。</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li>调试麻烦。</li>
+<li>移植性差。不同数据库支持的语言不一样，其存储过程的编写规则也不一样，所以存储过程无法移植到另一类数据库。</li>
+<li>重新编译问题。因为后端代码是运行前编译的，如果带有引用关系的对象发生改变时，受影响的存储过程、包将需要重新编译（不过也可以设置成运行时刻自动编译）。</li>
+<li>不能大量使用。如果在一个程序系统中大量的使用存储过程，到程序交付使用的时候随着用户需求的增加会导致数据结构的变化，接着就是系统的相关问题了，最后如果用户想维护该系统可以说是非常难、而且代价是空前的，维护起来更麻烦。</li>
+</ol>
+</li>
+</ul>
+<h2 id="存储过程语法"><a href="#存储过程语法" class="headerlink" title="存储过程语法"></a>存储过程语法</h2><h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><pre><code>create [or replace] procedure  &lt;过程名&gt;(&lt;参数列表,无参时忽略&gt;)
+as/is
+变量声明、初始化
+begin
+业务处理、逻辑代码
+exception
+异常捕获、容错处理
+end  &lt;过程名&gt;;
+
+参数:
+&lt;参数名&gt; in|out|in out  &lt;参数类型，无长度说明&gt; ，如：v_name  varchar2
+in：入参
+out：出参
+in out：出入参
+
+调用语法：
+    1)、exec  &lt;过程名&gt;;
+    2)、execute  &lt;过程名&gt;;
+    3)、在PL/SQL语句块中直接调用。
+
+异常捕获：
+    when others then/raise;
+</code></pre><h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><pre><code>create or replace procedure &quot;TEST_SWAP&quot;(v_param1 in out varchar2,v_param2 in out varchar2)
+is
+    v_temp varchar2(20);
+begin
+    dbms_output.put_line(&apos;交换前参数1：&apos;||v_param1||&apos;  参数2：&apos;||v_param2);
+    v_temp:=v_param1;
+    v_param1:=v_param2;
+    v_param2:=v_temp;
+    dbms_output.put_line(&apos;交换后参数1：&apos;||v_param1||&apos;  参数2：&apos;||v_param2);
+exception
+    when others then dbms_output.put_line(&apos;There is a error when the procedure up_wap executing!&apos;);
+end &quot;TEST_SWAP&quot;;
+</code></pre><h3 id="常用语法"><a href="#常用语法" class="headerlink" title="常用语法"></a>常用语法</h3><pre><code>-- INSERT
+SELECT INTO table1 (name1, name2...) SELECT (name1, name2..) FROM table2 WHERE exprss
+
+-- 转换为两位小数
+SELECT to_char(&apos;1111&apos;,&apos;FM990.00&apos;) FROM hau_dm_b6c_import;
+
+-- NVL(E1, E2)的功能为：如果E1为NULL，则函数返回E2，否则返回E1本身。
+SELECT NVL(&apos;1233&apos;, &apos;123&apos;) FROM HAU_DM_B6C_IMPORT;
+</code></pre><h2 id="存储函数语法"><a href="#存储函数语法" class="headerlink" title="存储函数语法"></a>存储函数语法</h2><pre><code>-- 语法
+create [or replace] function 函数名(参数列表)
+return 函数值类型
+as
+PLSQL子程序体;
+</code></pre><h2 id="使用原则"><a href="#使用原则" class="headerlink" title="使用原则"></a>使用原则</h2><p>如果只有一个返回值,用存储函数;否则,就用存储过程.</p>
+<h1 id="HiAgent-报表"><a href="#HiAgent-报表" class="headerlink" title="HiAgent 报表"></a>HiAgent 报表</h1><h2 id="配置数据源管理"><a href="#配置数据源管理" class="headerlink" title="配置数据源管理"></a>配置数据源管理</h2><p>视作一个在页面上定义一个存储过程</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;数据源管理</p>
+</li>
+<li><p>添加数据源：</p>
+<ul>
+<li>存储过程名称：数据库中对应的名称</li>
+<li>数据源名称：</li>
+<li>数据源描述：</li>
+</ul>
+</li>
+<li><p>配置输入和输出参数</p>
+</li>
+</ol>
+<h2 id="配置模版管理"><a href="#配置模版管理" class="headerlink" title="配置模版管理"></a>配置模版管理</h2><p>定义其展现模式</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;模版管理</p>
+</li>
+<li><p>添加模版：（前端使用echart控件）</p>
+<ul>
+<li>模版名称：</li>
+<li>模版描述：</li>
+<li>模版类：</li>
+<li>存储过程：上一级定义的过程</li>
+<li>模版类型：<ul>
+<li>图表：需要配置模版样式</li>
+<li>网格：要求展现的字段为num</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="配置报表管理"><a href="#配置报表管理" class="headerlink" title="配置报表管理"></a>配置报表管理</h2><p>定义其具体的输入内容和暂时内容</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;报表管理</p>
+</li>
+<li><p>添加报表：</p>
+<ul>
+<li>报表标题：</li>
+<li>模版子标题：</li>
+<li>报表类：同上一级配置的模版类型（无法更改）</li>
+<li>报表模版：</li>
+</ul>
+</li>
+</ol>
+<h2 id="配置权限管理"><a href="#配置权限管理" class="headerlink" title="配置权限管理"></a>配置权限管理</h2><p>定义什么角色可以查看</p>
+<p>BUG：全选按钮会导致无法查看报表，需要逐个勾选</p>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-07-30T19:08:27.000Z" title="2019-07-30T19:08:27.000Z">2019-07-30</time><span class="level-item">几秒 读完 (大约 0 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2019/07/30/springMVC%E9%A1%B9%E7%9B%AE%E4%BD%BF%E7%94%A8AOP%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95/">springMVC项目使用AOP日志记录</a></h1><div class="content"><p># </p>
+</div></article></div><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-07-02T10:54:47.000Z" title="2019-07-02T10:54:47.000Z">2019-07-02</time><span class="level-item">21 分钟 读完 (大约 3103 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile"><a class="link-muted" href="/2019/07/02/Redis%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%AC%94%E8%AE%B0/">Redis底层数据笔记</a></h1><div class="content"><h1 id="redis底层数据结构以及对象系统"><a href="#redis底层数据结构以及对象系统" class="headerlink" title="redis底层数据结构以及对象系统"></a>redis底层数据结构以及对象系统</h1><h2 id="底层数据结构"><a href="#底层数据结构" class="headerlink" title="底层数据结构"></a>底层数据结构</h2><h2 id="SDS（simple-dynamic-string，简单动态字符串）"><a href="#SDS（simple-dynamic-string，简单动态字符串）" class="headerlink" title="SDS（simple dynamic string，简单动态字符串）"></a>SDS（simple dynamic string，简单动态字符串）</h2><pre><code>/* 保存字符串对象的结构 */
+struct sdshdr {
+    int len;       // buf 中已占用空间的长度
+    int free;      // buf 中剩余可用空间的长度
+    char buf[];    // 数据空间
+};
+</code></pre><h3 id="SDS空间预分配："><a href="#SDS空间预分配：" class="headerlink" title="SDS空间预分配："></a>SDS空间预分配：</h3><p>对SDS字符串进行扩展，如果free值大于扩展值则直接存储，否则重新分配空间：</p>
+<ul>
+<li>如果对SDS进行修改后字符串长度（len值）小于1MB，则额外分配len大小相同的空间（free值）；</li>
+<li>若SDS修改后len大于1MB，则额外分配1MB的空间（free值）。</li>
+</ul>
+<h3 id="SDS惰性空间释放："><a href="#SDS惰性空间释放：" class="headerlink" title="SDS惰性空间释放："></a>SDS惰性空间释放：</h3><p>对SDS字符串进行缩短操作，并不会重新分配内存回收缩短的字节，而是使用free属性将这些字节的数量记录起来。</p>
+<p>redis保存的是SDS中的buf的二进制数据。SDS的API都是二进制安全的。</p>
+<p><img src="http://ww3.sinaimg.cn/large/006tNc79ly1g4l9uj0wp9j30k305x0v2.jpg" alt=""></p>
+<h3 id="链表"><a href="#链表" class="headerlink" title="链表"></a>链表</h3><p>双向链表</p>
+<pre><code>/* 双端链表节点 */
+typedef struct listNode {
+    struct listNode *prev;      // 前置节点
+    struct listNode *next;      // 后置节点  
+    void *value;                // 节点的值
+} listNode;
+</code></pre><p><img src="http://ww3.sinaimg.cn/large/006tNc79ly1g4l9wbhheaj30j309042e.jpg" alt=""></p>
+<h3 id="字典"><a href="#字典" class="headerlink" title="字典"></a>字典</h3><pre><code>/* 哈希表节点 */
+typedef struct dictEntry {    
+    void *key;                // 键
+    union {                   // 值
+        void *val;
+        uint64_t u64;
+        int64_t s64;
+    } v;
+    struct dictEntry *next;   // 指向下个哈希表节点，形成链表
+
+} dictEntry;
+
+/*  字典类型特定函数 */
+typedef struct dictType {
+    unsigned int (*hashFunction)(const void *key); 
+    // 计算哈希值的函数
+    void *(*keyDup)(void *privdata, const void *key);  
+    // 复制键的函数
+    void *(*valDup)(void *privdata, const void *obj);               
+    // 复制值的函数
+    int (*keyCompare)(void *privdata, const void *key1, const void *key2);   
+    // 对比键的函数
+    void (*keyDestructor)(void *privdata, void *key);   
+    // 销毁键的函数
+    void (*valDestructor)(void *privdata, void *obj);       
+    // 销毁值的函数
+} dictType;
+
+
+/* This is our hash table structure. Every dictionary has two of this as we
+* implement incremental rehashing, for the old to the new table. */
+/* 哈希表
+* 每个字典都使用两个哈希表，从而实现渐进式 rehash 。
+*/
+typedef struct dictht {
+    dictEntry **table;      // 哈希表数组，用链表方式解决冲突问题
+    unsigned long size;     // 哈希表大小
+    unsigned long sizemask; // 哈希表大小掩码，用于计算索引值，总是等于 size - 1
+    unsigned long used;     // 该哈希表已有节点的数量
+} dictht;
+
+/* 字典 */
+typedef struct dict {
+    dictType *type;      // 类型特定函数
+    void *privdata;      // 私有数据
+    dictht ht[2];        // 哈希表
+    int rehashidx;       // rehash 索引，当 rehash 不在进行时，值为 -1
+    int iterators;       // 目前正在运行的安全迭代器的数量
+} dict;
+</code></pre><p><img src="http://ww2.sinaimg.cn/large/006tNc79ly1g4l9xmgd3oj312e0mejwm.jpg" alt=""><br>哈希算法：<br>    redis使用MurmurHash算法来计算键的哈希值。目前使用的是Murmurhash2。</p>
+<p>哈希冲突：<br>    使用链地址法解决键冲突，为了速度考虑，总是将新节点添加到链表的表头位置。如下，k2插在k1前面。</p>
+<p><img src="http://ww2.sinaimg.cn/large/006tNc79ly1g4l9zhs22lj31000u010z.jpg" alt=""><br>rehash：<br>    负载因子：load_factor = ht[0].used / ht[0].size</p>
+<p>哈希表的扩展：</p>
+<ul>
+<li>服务器没执行BGSAVE或BGREWRITEAOF命令，并且负载因子大于等于1.</li>
+<li>服务器正执行BGSAVE或BGREWRITEAOF命令，并且负载因子大于等于5.</li>
+<li><p>哈希表的收缩：当哈希表的负载因子小于0.1时，会自动收缩。</p>
+</li>
+<li><p>步骤：</p>
+<ul>
+<li>为字典的ht[1]分配空间，大小为：<ul>
+<li>若是扩展操作，则大小为第一个大于等于ht[0}.used*2的2^n;</li>
+<li>若是收缩操作，则大小为第一个大于等于ht[0].used的2^n.</li>
+</ul>
+</li>
+<li>将保存在ht[0]中的所有键值rehash到ht[1]中（重新计算哈希值和索引值);</li>
+<li>释放ht[0]中的所有键值对，将ht[1]设为ht[0]，并在ht[1]上创建一个空白的哈希表。</li>
+</ul>
+</li>
+</ul>
+<p>渐进式rehash：</p>
+<ul>
+<li><p>若是键值对数量太大，那么若一次性rehash可能会导致服务器在一段时间内停止服务。因此可以采用分多次渐进式地将ht[0]的键值对慢慢地rehash到ht[1]中。</p>
+</li>
+<li><p>步骤：</p>
+<ul>
+<li>为ht[1]分配空间，让字典同时拥有ht[0]和ht[1]两个哈希表；</li>
+<li>将rehashidx设为0，表示rehash正式开始；<ul>
+<li>在rehash期间，每次对字典进行添加、删除、查找或者更新操作时，除了执行指定操作外，还会顺带将ht[0]在rehashidx索引上的所有键值对rehash到ht[1]中，然后将rehashidx加1；</li>
+<li>当ht[0]中所有的键值对全部rehash到ht[1]后，将rehashidx设为-1，rehash完成。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>在rehash期间，对字典进行增删查找操作时需要在ht[0]和ht[1]上操作。如查找要现在ht[0]查找，查不到再到ht[1]查找；如增加键值对，一律在ht[1]中增加，这样保证ht[0]中的键值对数量只减少不增加。</p>
+<h3 id="跳跃表（zset）"><a href="#跳跃表（zset）" class="headerlink" title="跳跃表（zset）"></a>跳跃表（zset）</h3><p>在跳跃表中，节点是按分数从小到大排序的。各个节点保存的成员对象必须是唯一的，但不同节点的分数可以相同，分数相同的节点按照成员对象在字典序中的大小来排序。</p>
+<pre><code>/* ZSETs use a specialized version of Skiplists */
+/*  跳跃表节点 */
+typedef struct zskiplistNode {
+    robj *obj;                         // 成员对象
+    double score;                      // 分值
+    struct zskiplistNode *backward;    // 后退指针
+    struct zskiplistLevel {            // 层
+        struct zskiplistNode *forward; // 前进指针
+        unsigned int span;             // 跨度
+    } level[];
+} zskiplistNode;
+
+/* 跳跃表 */
+typedef struct zskiplist {
+    struct zskiplistNode *header, *tail; // 表头节点和表尾节点
+    unsigned long length;                // 表中节点的数量
+    int level;                           // 表中层数最大的节点的层数
+} zskiplist;
+</code></pre><p><img src="http://ww2.sinaimg.cn/large/006tNc79ly1g4la16rsynj31160fyafs.jpg" alt=""></p>
+<pre><code>/* 有序集合 */
+typedef struct zset {
+    dict *dict; 
+    // 字典，键为成员，值为分值， 用于支持 O(1) 复杂度的按成员取分值操作
+    zskiplist *zsl;
+    // 跳跃表，按分值排序成员，用于支持平均复杂度为 O(log N) 的按分值定位成员操作， 以及范围操作
+} zset;
+</code></pre><h3 id="整数集合（intset）"><a href="#整数集合（intset）" class="headerlink" title="整数集合（intset）"></a>整数集合（intset）</h3><pre><code>typedef struct intset {
+    uint32_t encoding;   // 编码方式
+    uint32_t length;     // 集合包含的元素数量
+    int8_t contents[];   // 保存元素的数组，从小到大排序，无重复
+} intset;
+</code></pre><p>升级：若要添加一个新元素到整数集合中，并且新元素类型比整数集合元素的类型长，则整数集合需要先升级，才能将新元素放进集合中。</p>
+<p>步骤：</p>
+<ul>
+<li>根据新元素的类型，扩展整数集合底层数组（contents）的空间大小，并为新元素分配空间；</li>
+<li>将底层数组现有的所有元素都转换成与新元素相同的类型，并有序地放到正确的位置上；</li>
+<li><p>将新元素添加到底层数组中。</p>
+<p>  因为引发升级的新元素的长度总是比整数集合现有的所有元素的长度都大，所以该元素要么就大于所有现有元素，要不就小于现有所有元素，因此新元素要不就放在最开头要不就放在最末尾。</p>
+<p>  不支持降级！</p>
+</li>
+</ul>
+<h3 id="压缩列表（ziplist）"><a href="#压缩列表（ziplist）" class="headerlink" title="压缩列表（ziplist）"></a>压缩列表（ziplist）</h3><p>压缩列表是由一系列特殊编码的连续内存块组成的顺序型数据结构。</p>
+<p>压缩列表组成：</p>
+<p><img src="http://ww4.sinaimg.cn/large/006tNc79ly1g4la3fjr3mj31800l8nbi.jpg" alt=""></p>
+<p>压缩节点构成：</p>
+<p><img src="http://ww2.sinaimg.cn/large/006tNc79ly1g4la3q4w6zj30oc04q75l.jpg" alt=""></p>
+<p>previous_entry_length：记录了压缩列表中前一个节点的长度（1或5字节）：</p>
+<ul>
+<li>若前一节点长度小于254字节，那么previous_entry_length长度为1字节；</li>
+<li>若前一节点长度大于等于254字节，那么previous_entry_length长度为5字节，其中第一字节为0xFE，后四个字节为长度。<br>encoding：记录了节点content属性所保存的数据类型以及长度；</li>
+</ul>
+<p><img src="http://ww1.sinaimg.cn/large/006tNc79ly1g4la4ar43zj31820o07hl.jpg" alt=""></p>
+<p>content：保存节点的值，可以是一个字节数组或者整数。</p>
+<h3 id="对象"><a href="#对象" class="headerlink" title="对象"></a>对象</h3><p>redis基于之前介绍的数据结构，创建了一个对象系统，包括字符串对象、列表对象、哈希对象、集合对象以及有序集合对象这五类。</p>
+<pre><code>typedef struct redisObject {  
+    unsigned type:4;              // 类型
+    unsigned encoding:4;          // 编码
+    unsigned lru:REDIS_LRU_BITS;  // 对象最后一次被访问的时间
+    int refcount;                 // 引用计数
+    void *ptr;                    // 指向实际值的指针
+} robj;
+</code></pre><p>type：对象的类型</p>
+<p><img src="http://ww3.sinaimg.cn/large/006tNc79ly1g4la53wfmjj30gy0cgwhk.jpg" alt=""></p>
+<p>redis会根据键对象的type属性进行类型检查，判断该键对象是否能执行指定的命令；如果可以则执行，否则拒绝执行并向客户端返回一个类型错误。</p>
+<p>若键能执行指定的指令，还会根据值对象的编码（encoding属性）方式，选择正确的命令实现代码执行命令。</p>
+<p>encoding：对象的编码，确定底层数据结构</p>
+<p><img src="http://ww1.sinaimg.cn/large/006tNc79ly1g4la5mfswxj317m0fs0zt.jpg" alt=""></p>
+<p>每个类型的对象都有多种不同编码：</p>
+<p><img src="http://ww4.sinaimg.cn/large/006tNc79ly1g4la64fp7dj316q0ks4dm.jpg" alt=""></p>
+<p>refcount：引用计数，用于内存回收和共享内存。</p>
+<ul>
+<li><p>内存回收：一个对象被多个程序使用时，引用计数会增加；程序不再使用时引用计数会减少，当减少到为0时，释放对象所占内存。</p>
+</li>
+<li><p>共享内存：redis服务器初始化时，会创建从0到9999共一万个字符串对象，当需要用到这些对象则共享对象而不是创建对象。</p>
+<ul>
+<li><p>字符串对象</p>
+<ul>
+<li><p>编码：int（整数）、raw（redisObject+SDS）或embstr（redisObject+embstr编码的SDS）</p>
+</li>
+<li><p>若是整数值，并且该整数值可以用long类型表示，则编码为int；若是字符串值，并且字符串长度大于32字节，那么将使用SDS保存字符串值，编码为raw；若是字符串值，并且字符串长度小于等于32字节，则编码为embstr。</p>
+</li>
+<li><p>注意：</p>
+<ul>
+<li>long double类型的浮点数是用字符串保存的，对其操作会先转化为浮点型进行操作再转化为字符串保存。</li>
+<li>对int型操作（如APPEND一个字符串），会把int转化为raw。<br>embstr字符串为只读，若要对其修改会先转化为raw。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>列表对象</p>
+<ul>
+<li><p>编码：ziplist（压缩列表）或linkedlist（双端链表）</p>
+</li>
+<li><p>当列表对象保存的字符串元素都小于64字节，并且元素数量小于512个时，使用ziplist；否则使用linkedlist，每个节点保存一个字符串对象。</p>
+</li>
+</ul>
+</li>
+<li><p>哈希对象</p>
+<ul>
+<li><p>编码：ziplist（压缩列表）或hashtable（字典）</p>
+</li>
+<li><p>哈希对象中保存的所有键值对的键和值的字符串长度都小于64字节，并且键值对数量小于512个，使用ziplist；否则使用hashtable，键和值都为字符串对象。</p>
+</li>
+</ul>
+</li>
+<li><p>集合对象</p>
+<ul>
+<li><p>编码：intset（整数集合）或hashtable（字典）</p>
+</li>
+<li><p>集合对象保存的所有元素都是整数值，并且数量不超过512个时，使用intset；否则使用hashtable，若使用hashtable，每个键都为一个字符串对象，值为NULL。</p>
+</li>
+</ul>
+</li>
+<li><p>有序集合对象</p>
+<ul>
+<li><p>编码：ziplist（压缩列表）或skiplist（zset）</p>
+</li>
+<li><p>有序结合保存的元素数量小于128个，并且元素成员长度小于64字节，使用ziplist，每个结合元素使用两个压缩列表节点保存，第一个保存成员，第二个保存分数，集合元素按分值从小到大排序；</p>
+</li>
+<li>否则使用skiplist编码，底层为zset结构，包含一个字典和一个跳跃表，其中跳跃表按分值进行排序，实现了范围查询；而字典创建了从成员到分数的映射，键为集合元素，值为分数；字典和跳跃表都使用指针指向成员和分数，因此不会</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div></article></div><nav class="pagination is-centered mt-4" role="navigation" aria-label="pagination"><div class="pagination-previous is-invisible is-hidden-mobile"><a href="/page/0/">上一页</a></div><div class="pagination-next"><a href="/page/2/">下一页</a></div><ul class="pagination-list is-hidden-mobile"><li><a class="pagination-link is-current" href="/">1</a></li><li><a class="pagination-link" href="/page/2/">2</a></li></ul></nav></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="" src="/img/user.jpeg" alt="一头大犀牛"></figure><p class="title is-size-4 is-block line-height-inherit">一头大犀牛</p><p class="is-size-6 is-block">考研ing...</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>HangZhou</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">20</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">1</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">28</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/HaloCsidez" target="_blank" rel="noopener">关注我在GitHub</a></div></div></div><!--!--><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/AOP/"><span class="tag">AOP</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JSON/"><span class="tag">JSON</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JVM/"><span class="tag">JVM</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kafka/"><span class="tag">Kafka</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MAC%E7%B3%BB%E7%BB%9F/"><span class="tag">MAC系统</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ORACLE/"><span class="tag">ORACLE</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Redis/"><span class="tag">Redis</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SHELL/"><span class="tag">SHELL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SQL/"><span class="tag">SQL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring/"><span class="tag">Spring</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SpringBoot/"><span class="tag">SpringBoot</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SpringCloud/"><span class="tag">SpringCloud</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SpringMVC/"><span class="tag">SpringMVC</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/TOMCAT/"><span class="tag">TOMCAT</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Vue/"><span class="tag">Vue</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8/"><span class="tag">云服务器</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%89%8D%E7%AB%AF/"><span class="tag">前端</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/"><span class="tag">单元测试</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%90%8E%E7%AB%AF/"><span class="tag">后端</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B/"><span class="tag">存储过程</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/"><span class="tag">数据库</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"><span class="tag">数据结构</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%97%A5%E5%BF%97%E5%A4%84%E7%90%86/"><span class="tag">日志处理</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%84%9A%E6%9C%AC/"><span class="tag">脚本</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%BD%AF%E4%BB%B6/"><span class="tag">软件</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%BF%90%E7%BB%B4/"><span class="tag">运维</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E9%9B%86%E7%BE%A4/"><span class="tag">集群</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen"></div></div><div class="column column-right is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only order-3"><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2021-03-05T13:12:02.000Z">2021-03-05</time></p><p class="title is-6"><a class="link-muted" href="/2021/03/05/spring-beans%E7%9A%84%E4%B8%80%E4%BA%9B%E7%90%86%E8%A7%A3/">spring-beans的一些理解</a></p><p class="is-uppercase"></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2021-03-01T12:10:06.000Z">2021-03-01</time></p><p class="title is-6"><a class="link-muted" href="/2021/03/01/m%E5%88%B0n%E7%9A%84%E8%B7%AF%E5%BE%84/">在二叉树中有两个结点m和n，若m是n的祖先，则使用后序遍历可以找到从m到n的路径</a></p><p class="is-uppercase"></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-04-01T22:16:14.000Z">2020-04-01</time></p><p class="title is-6"><a class="link-muted" href="/2020/04/01/%E9%9D%A2%E8%AF%95%E4%B8%ADKafka%E7%9A%84%E9%97%AE%E9%A2%98/">面试中Kafka的问题</a></p><p class="is-uppercase"></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-28T16:20:19.000Z">2020-02-28</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/28/%E5%B7%A6%E5%8F%B3%E5%80%BC%E7%BC%96%E7%A0%81%E6%A0%91/">左右值编码树</a></p><p class="is-uppercase"></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-24T17:31:15.000Z">2020-02-24</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/24/Entity%EF%BC%8CBo%EF%BC%8CVo%EF%BC%8CPo,Dto,Pojo%E7%9A%84%E7%90%86%E8%A7%A3%E5%92%8C%E5%8C%BA%E5%88%86/">Entity，Bo，Vo，Po,Dto,Pojo的理解和区分</a></p><p class="is-uppercase"></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2021/03/"><span class="level-start"><span class="level-item">三月 2021</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/04/"><span class="level-start"><span class="level-item">四月 2020</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/02/"><span class="level-start"><span class="level-item">二月 2020</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/01/"><span class="level-start"><span class="level-item">一月 2020</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/08/"><span class="level-start"><span class="level-item">八月 2019</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/07/"><span class="level-start"><span class="level-item">七月 2019</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/06/"><span class="level-start"><span class="level-item">六月 2019</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/05/"><span class="level-start"><span class="level-item">五月 2019</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li></ul></div></div></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><p class="size-small"><span>&copy; 2021 🥤HELLO EVERYONE！</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a><br> <a href="http://beian.miit.gov.cn/">浙ICP备20000850号</a><br><span id="busuanzi_container_site_uv">共<span id="busuanzi_value_site_uv">0</span>个访客</span></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'https://blog.csidez.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

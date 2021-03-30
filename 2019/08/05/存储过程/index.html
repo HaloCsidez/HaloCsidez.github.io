@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.1"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>存储过程 - 🥤HELLO EVERYONE！</title><meta description="存储过程与存储函数解释储存程序 (Stored Procedure)，又可称预储程序或者存储过程，是一种在数据库中存储复杂程序，以便外部程序调用的一种数据库对象，它可以视为数据库中的一种函数或子程序。 存储在数据库中，供所有用户程序调用的子程序  优点  重复使用。存储过程可以重复使用，从而可以减少数据库开发人员的工作量。 减少网络流量。存储过程位于服务器上，调用的时候只需要传递存储过程的名称以及"><meta property="og:type" content="blog"><meta property="og:title" content="🥤HELLO EVERYONE！"><meta property="og:url" content="https://blog.csidez.com/2019/08/05/%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B/"><meta property="og:site_name" content="🥤HELLO EVERYONE！"><meta property="og:description" content="存储过程与存储函数解释储存程序 (Stored Procedure)，又可称预储程序或者存储过程，是一种在数据库中存储复杂程序，以便外部程序调用的一种数据库对象，它可以视为数据库中的一种函数或子程序。 存储在数据库中，供所有用户程序调用的子程序  优点  重复使用。存储过程可以重复使用，从而可以减少数据库开发人员的工作量。 减少网络流量。存储过程位于服务器上，调用的时候只需要传递存储过程的名称以及"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://blog.csidez.com/img/og_image.png"><meta property="article:published_time" content="2019-08-05T10:58:11.000Z"><meta property="article:modified_time" content="2021-03-30T05:36:37.584Z"><meta property="article:author" content="csidez"><meta property="article:tag" content="ORACLE"><meta property="article:tag" content="存储过程"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.csidez.com/2019/08/05/%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B/"},"headline":"🥤HELLO EVERYONE！","image":["https://blog.csidez.com/img/og_image.png"],"datePublished":"2019-08-05T10:58:11.000Z","dateModified":"2021-03-30T05:36:37.584Z","author":{"@type":"Person","name":null},"description":"存储过程与存储函数解释储存程序 (Stored Procedure)，又可称预储程序或者存储过程，是一种在数据库中存储复杂程序，以便外部程序调用的一种数据库对象，它可以视为数据库中的一种函数或子程序。 存储在数据库中，供所有用户程序调用的子程序  优点  重复使用。存储过程可以重复使用，从而可以减少数据库开发人员的工作量。 减少网络流量。存储过程位于服务器上，调用的时候只需要传递存储过程的名称以及"}</script><link rel="canonical" href="https://blog.csidez.com/2019/08/05/%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B/"><link rel="icon" href="/img/favicon.svg"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><script src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" defer></script><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/favicon.png" alt="🥤HELLO EVERYONE！" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item search" title="搜索" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-6-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-08-05T10:58:11.000Z" title="2019-08-05T10:58:11.000Z">2019-08-05</time><span class="level-item">8 分钟 读完 (大约 1187 个字)</span><span class="level-item" id="busuanzi_container_page_pv"><i class="far fa-eye"></i>&nbsp;&nbsp;<span id="busuanzi_value_page_pv">0</span>次访问</span></div></div><h1 class="title is-3 is-size-4-mobile">存储过程</h1><div class="content"><h1 id="存储过程与存储函数"><a href="#存储过程与存储函数" class="headerlink" title="存储过程与存储函数"></a>存储过程与存储函数</h1><h2 id="解释"><a href="#解释" class="headerlink" title="解释"></a>解释</h2><p>储存程序 (Stored Procedure)，又可称预储程序或者存储过程，是一种在数据库中存储复杂程序，以便外部程序调用的一种数据库对象，它可以视为数据库中的一种函数或子程序。</p>
+<p><code>存储在数据库中，供所有用户程序调用的子程序</code></p>
+<ul>
+<li><p>优点</p>
+<ol>
+<li>重复使用。存储过程可以重复使用，从而可以减少数据库开发人员的工作量。</li>
+<li>减少网络流量。存储过程位于服务器上，调用的时候只需要传递存储过程的名称以及参数就可以了，因此降低了网络传输的数据量。</li>
+<li>安全性。参数化的存储过程可以防止SQL注入式攻击，而且可以将Grant、Deny以及Revoke权限应用于存储过程。</li>
+<li>效率高。由于数据库执行动作时，是先编译后执行的。然而存储过程是一个编译过的代码块，所以执行效率要比T-SQL语句高。</li>
+</ol>
+</li>
+<li><p>缺点</p>
+<ol>
+<li>调试麻烦。</li>
+<li>移植性差。不同数据库支持的语言不一样，其存储过程的编写规则也不一样，所以存储过程无法移植到另一类数据库。</li>
+<li>重新编译问题。因为后端代码是运行前编译的，如果带有引用关系的对象发生改变时，受影响的存储过程、包将需要重新编译（不过也可以设置成运行时刻自动编译）。</li>
+<li>不能大量使用。如果在一个程序系统中大量的使用存储过程，到程序交付使用的时候随着用户需求的增加会导致数据结构的变化，接着就是系统的相关问题了，最后如果用户想维护该系统可以说是非常难、而且代价是空前的，维护起来更麻烦。</li>
+</ol>
+</li>
+</ul>
+<h2 id="存储过程语法"><a href="#存储过程语法" class="headerlink" title="存储过程语法"></a>存储过程语法</h2><h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><pre><code>create [or replace] procedure  &lt;过程名&gt;(&lt;参数列表,无参时忽略&gt;)
+as/is
+变量声明、初始化
+begin
+业务处理、逻辑代码
+exception
+异常捕获、容错处理
+end  &lt;过程名&gt;;
+
+参数:
+&lt;参数名&gt; in|out|in out  &lt;参数类型，无长度说明&gt; ，如：v_name  varchar2
+in：入参
+out：出参
+in out：出入参
+
+调用语法：
+    1)、exec  &lt;过程名&gt;;
+    2)、execute  &lt;过程名&gt;;
+    3)、在PL/SQL语句块中直接调用。
+
+异常捕获：
+    when others then/raise;
+</code></pre><h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><pre><code>create or replace procedure &quot;TEST_SWAP&quot;(v_param1 in out varchar2,v_param2 in out varchar2)
+is
+    v_temp varchar2(20);
+begin
+    dbms_output.put_line(&apos;交换前参数1：&apos;||v_param1||&apos;  参数2：&apos;||v_param2);
+    v_temp:=v_param1;
+    v_param1:=v_param2;
+    v_param2:=v_temp;
+    dbms_output.put_line(&apos;交换后参数1：&apos;||v_param1||&apos;  参数2：&apos;||v_param2);
+exception
+    when others then dbms_output.put_line(&apos;There is a error when the procedure up_wap executing!&apos;);
+end &quot;TEST_SWAP&quot;;
+</code></pre><h3 id="常用语法"><a href="#常用语法" class="headerlink" title="常用语法"></a>常用语法</h3><pre><code>-- INSERT
+SELECT INTO table1 (name1, name2...) SELECT (name1, name2..) FROM table2 WHERE exprss
+
+-- 转换为两位小数
+SELECT to_char(&apos;1111&apos;,&apos;FM990.00&apos;) FROM hau_dm_b6c_import;
+
+-- NVL(E1, E2)的功能为：如果E1为NULL，则函数返回E2，否则返回E1本身。
+SELECT NVL(&apos;1233&apos;, &apos;123&apos;) FROM HAU_DM_B6C_IMPORT;
+</code></pre><h2 id="存储函数语法"><a href="#存储函数语法" class="headerlink" title="存储函数语法"></a>存储函数语法</h2><pre><code>-- 语法
+create [or replace] function 函数名(参数列表)
+return 函数值类型
+as
+PLSQL子程序体;
+</code></pre><h2 id="使用原则"><a href="#使用原则" class="headerlink" title="使用原则"></a>使用原则</h2><p>如果只有一个返回值,用存储函数;否则,就用存储过程.</p>
+<h1 id="HiAgent-报表"><a href="#HiAgent-报表" class="headerlink" title="HiAgent 报表"></a>HiAgent 报表</h1><h2 id="配置数据源管理"><a href="#配置数据源管理" class="headerlink" title="配置数据源管理"></a>配置数据源管理</h2><p>视作一个在页面上定义一个存储过程</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;数据源管理</p>
+</li>
+<li><p>添加数据源：</p>
+<ul>
+<li>存储过程名称：数据库中对应的名称</li>
+<li>数据源名称：</li>
+<li>数据源描述：</li>
+</ul>
+</li>
+<li><p>配置输入和输出参数</p>
+</li>
+</ol>
+<h2 id="配置模版管理"><a href="#配置模版管理" class="headerlink" title="配置模版管理"></a>配置模版管理</h2><p>定义其展现模式</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;模版管理</p>
+</li>
+<li><p>添加模版：（前端使用echart控件）</p>
+<ul>
+<li>模版名称：</li>
+<li>模版描述：</li>
+<li>模版类：</li>
+<li>存储过程：上一级定义的过程</li>
+<li>模版类型：<ul>
+<li>图表：需要配置模版样式</li>
+<li>网格：要求展现的字段为num</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="配置报表管理"><a href="#配置报表管理" class="headerlink" title="配置报表管理"></a>配置报表管理</h2><p>定义其具体的输入内容和暂时内容</p>
+<ol>
+<li><p>位置：系统配置中心-&gt;报表-&gt;报表管理</p>
+</li>
+<li><p>添加报表：</p>
+<ul>
+<li>报表标题：</li>
+<li>模版子标题：</li>
+<li>报表类：同上一级配置的模版类型（无法更改）</li>
+<li>报表模版：</li>
+</ul>
+</li>
+</ol>
+<h2 id="配置权限管理"><a href="#配置权限管理" class="headerlink" title="配置权限管理"></a>配置权限管理</h2><p>定义什么角色可以查看</p>
+<p>BUG：全选按钮会导致无法查看报表，需要逐个勾选</p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/ORACLE/">ORACLE</a><a class="link-muted mr-2" rel="tag" href="/tags/%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B/">存储过程</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/01/22/Spring%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E7%BC%96%E5%86%99/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">Spring单元测试编写</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/07/30/springMVC%E9%A1%B9%E7%9B%AE%E4%BD%BF%E7%94%A8AOP%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95/"><span class="level-item">springMVC项目使用AOP日志记录</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><div class="card"><div class="card-content"><h3 class="title is-5">评论</h3><div id="disqus_thread"><noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div><script>var disqus_config = function () {
+            this.page.url = 'https://blog.csidez.com/2019/08/05/%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B/';
+            this.page.identifier = '2019/08/05/存储过程/';
+        };
+        (function() {
+            var d = document, s = d.createElement('script');  
+            s.src = '//' + 'csidez' + '.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+        })();</script></div></div></div><div class="column column-left is-4-tablet is-4-desktop is-3-widescreen  order-1 is-sticky"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="" src="/img/user.jpeg" alt="一头大犀牛"></figure><p class="title is-size-4 is-block line-height-inherit">一头大犀牛</p><p class="is-size-6 is-block">考研ing...</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>HangZhou</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">20</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">1</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">28</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/HaloCsidez" target="_blank" rel="noopener">关注我在GitHub</a></div></div></div><!--!--><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/AOP/"><span class="tag">AOP</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JAVA/"><span class="tag">JAVA</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JSON/"><span class="tag">JSON</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JVM/"><span class="tag">JVM</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kafka/"><span class="tag">Kafka</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MAC%E7%B3%BB%E7%BB%9F/"><span class="tag">MAC系统</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/ORACLE/"><span class="tag">ORACLE</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Redis/"><span class="tag">Redis</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SHELL/"><span class="tag">SHELL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SQL/"><span class="tag">SQL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring/"><span class="tag">Spring</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SpringBoot/"><span class="tag">SpringBoot</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SpringCloud/"><span class="tag">SpringCloud</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SpringMVC/"><span class="tag">SpringMVC</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/TOMCAT/"><span class="tag">TOMCAT</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Vue/"><span class="tag">Vue</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8/"><span class="tag">云服务器</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%89%8D%E7%AB%AF/"><span class="tag">前端</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/"><span class="tag">单元测试</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%90%8E%E7%AB%AF/"><span class="tag">后端</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B/"><span class="tag">存储过程</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/"><span class="tag">数据库</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"><span class="tag">数据结构</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%97%A5%E5%BF%97%E5%A4%84%E7%90%86/"><span class="tag">日志处理</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%84%9A%E6%9C%AC/"><span class="tag">脚本</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%BD%AF%E4%BB%B6/"><span class="tag">软件</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%BF%90%E7%BB%B4/"><span class="tag">运维</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E9%9B%86%E7%BE%A4/"><span class="tag">集群</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen"></div></div><div class="column column-right is-4-tablet is-4-desktop is-3-widescreen is-hidden-touch is-hidden-desktop-only order-3"><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2021-03-05T13:12:02.000Z">2021-03-05</time></p><p class="title is-6"><a class="link-muted" href="/2021/03/05/spring-beans%E7%9A%84%E4%B8%80%E4%BA%9B%E7%90%86%E8%A7%A3/">spring-beans的一些理解</a></p><p class="is-uppercase"></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2021-03-01T12:10:06.000Z">2021-03-01</time></p><p class="title is-6"><a class="link-muted" href="/2021/03/01/m%E5%88%B0n%E7%9A%84%E8%B7%AF%E5%BE%84/">在二叉树中有两个结点m和n，若m是n的祖先，则使用后序遍历可以找到从m到n的路径</a></p><p class="is-uppercase"></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-04-01T22:16:14.000Z">2020-04-01</time></p><p class="title is-6"><a class="link-muted" href="/2020/04/01/%E9%9D%A2%E8%AF%95%E4%B8%ADKafka%E7%9A%84%E9%97%AE%E9%A2%98/">面试中Kafka的问题</a></p><p class="is-uppercase"></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-28T16:20:19.000Z">2020-02-28</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/28/%E5%B7%A6%E5%8F%B3%E5%80%BC%E7%BC%96%E7%A0%81%E6%A0%91/">左右值编码树</a></p><p class="is-uppercase"></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-24T17:31:15.000Z">2020-02-24</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/24/Entity%EF%BC%8CBo%EF%BC%8CVo%EF%BC%8CPo,Dto,Pojo%E7%9A%84%E7%90%86%E8%A7%A3%E5%92%8C%E5%8C%BA%E5%88%86/">Entity，Bo，Vo，Po,Dto,Pojo的理解和区分</a></p><p class="is-uppercase"></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">归档</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2021/03/"><span class="level-start"><span class="level-item">三月 2021</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/04/"><span class="level-start"><span class="level-item">四月 2020</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/02/"><span class="level-start"><span class="level-item">二月 2020</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/01/"><span class="level-start"><span class="level-item">一月 2020</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/08/"><span class="level-start"><span class="level-item">八月 2019</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/07/"><span class="level-start"><span class="level-item">七月 2019</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/06/"><span class="level-start"><span class="level-item">六月 2019</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/05/"><span class="level-start"><span class="level-item">五月 2019</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li></ul></div></div></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><p class="size-small"><span>&copy; 2021 🥤HELLO EVERYONE！</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a><br> <a href="http://beian.miit.gov.cn/">浙ICP备20000850号</a><br><span id="busuanzi_container_site_uv">共<span id="busuanzi_value_site_uv">0</span>个访客</span></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'https://blog.csidez.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
